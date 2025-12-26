@@ -7,7 +7,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen gradient-dark">
+    <div className="min-h-screen bg-background dark">
       <Navbar />
       <main className="pt-16">
         {children}

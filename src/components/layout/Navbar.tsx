@@ -40,7 +40,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-dark">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -48,8 +48,8 @@ export function Navbar() {
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
               <Activity className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-xl text-foreground">
-              Fit<span className="text-gradient">AI</span>
+            <span className="font-display font-bold text-xl">
+              Fit<span className="text-gradient-primary">AI</span>
             </span>
           </Link>
 
@@ -58,7 +58,7 @@ export function Navbar() {
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link key={link.href} to={link.href}>
-                  <Button variant="ghost" size="sm" className="gap-2">
+                  <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                     <link.icon className="w-4 h-4" />
                     {link.label}
                   </Button>
@@ -88,7 +88,7 @@ export function Navbar() {
                       Profile
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
