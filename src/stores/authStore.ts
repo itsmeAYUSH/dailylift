@@ -36,7 +36,7 @@ interface AuthState {
   fetchProfile: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   signOut: () => Promise<void>;
-  initialize: () => Promise<void>;
+  initialize: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   updateProfile: async (updates) => {
-    const { user, profile } = get();
+    const { user } = get();
     if (!user) return;
     
     const { data, error } = await supabase
@@ -94,33 +94,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: null, session: null, profile: null });
   },
   
-  initialize: async () => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        set({ session, user: session?.user ?? null });
-        
-        if (session?.user) {
-          setTimeout(() => {
-            get().fetchProfile();
-          }, 0);
-        } else {
-          set({ profile: null });
-        }
+  initialize: () => {
+    supabase.auth.onAuthStateChange((event, session) => {
+      set({ session, user: session?.user ?? null });
+      
+      if (session?.user) {
+        setTimeout(() => {
+          get().fetchProfile();
+        }, 0);
+      } else {
+        set({ profile: null });
       }
-    );
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    set({ 
-      session, 
-      user: session?.user ?? null, 
-      isLoading: false,
-      isInitialized: true 
     });
     
-    if (session?.user) {
-      await get().fetchProfile();
-    }
-    
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      set({ 
+        session, 
+        user: session?.user ?? null, 
+        isLoading: false,
+        isInitialized: true 
+      });
+      
+      if (session?.user) {
+        get().fetchProfile();
+      }
+    });
   },
 }));
