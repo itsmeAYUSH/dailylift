@@ -15,6 +15,9 @@ interface Profile {
   workout_preference: 'home' | 'gym' | 'outdoor' | 'mixed';
   available_time_minutes: number;
   dietary_preference: string;
+  training_split: string | null;
+  training_days_per_week: number | null;
+  activity_level: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;

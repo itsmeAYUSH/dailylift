@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Layout } from '@/components/layout/Layout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@dailylift/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@dailylift/ui/components/card';
 import { Input } from '@dailylift/ui/components/input';
 import { Label } from '@dailylift/ui/components/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@dailylift/ui/components/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@dailylift/ui/components/select';
 import { Progress } from '@dailylift/ui/components/progress';
 import { useAuthStore } from '@/stores/authStore';
@@ -22,9 +22,27 @@ import {
   Zap
 } from 'lucide-react';
 
-export default function Calculators() {
+const CALCULATORS = [
+  { id: 'bmi', label: 'Body Mass Index (BMI)', icon: Scale },
+  { id: 'bmr', label: 'Basal Metabolic Rate (BMR)', icon: Flame },
+  { id: 'calories', label: 'Daily Calories', icon: Zap },
+  { id: 'bodyfat', label: 'Body Fat (Navy Method)', icon: Heart },
+  { id: 'water', label: 'Water Intake', icon: Droplets },
+] as const;
+
+export default function CalculatorsPage() {
+  return (
+    <Suspense fallback={null}>
+      <Calculators />
+    </Suspense>
+  );
+}
+
+function Calculators() {
   const { user, profile, isLoading, isInitialized } = useAuthStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get('type');
   
   // BMI Calculator
   const [bmiHeight, setBmiHeight] = useState(profile?.height_cm?.toString() || '');
@@ -55,6 +73,23 @@ export default function Calculators() {
   const [waterWeight, setWaterWeight] = useState(profile?.weight_kg?.toString() || '');
   const [waterActivity, setWaterActivity] = useState('moderate');
   const [waterResult, setWaterResult] = useState<number | null>(null);
+
+  // Which calculator is currently shown. Synced with the `?type=` query param
+  // so the sidebar dropdown and the in-page dropdown stay in step.
+  const [activeCalc, setActiveCalc] = useState(
+    typeParam && CALCULATORS.some((c) => c.id === typeParam) ? typeParam : 'bmi',
+  );
+
+  useEffect(() => {
+    if (typeParam && CALCULATORS.some((c) => c.id === typeParam)) {
+      setActiveCalc(typeParam);
+    }
+  }, [typeParam]);
+
+  const selectCalculator = (id: string) => {
+    setActiveCalc(id);
+    router.replace(`/calculators?type=${id}`, { scroll: false });
+  };
 
   useEffect(() => {
     if (isInitialized && !isLoading && !user) {
@@ -219,30 +254,33 @@ export default function Calculators() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
-              <Calculator className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="font-display text-2xl font-bold">Health calculators</h1>
-              <p className="text-sm text-muted-foreground">Understand your key fitness metrics</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Health calculators"
+          subtitle="Understand your key fitness metrics — BMI, BMR, calories, body fat, and hydration."
+        />
 
-        <Tabs defaultValue="bmi" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full bg-secondary/50 p-1">
-            <TabsTrigger value="bmi" className="text-xs sm:text-sm">BMI</TabsTrigger>
-            <TabsTrigger value="bmr" className="text-xs sm:text-sm">BMR</TabsTrigger>
-            <TabsTrigger value="calories" className="text-xs sm:text-sm">Calories</TabsTrigger>
-            <TabsTrigger value="bodyfat" className="text-xs sm:text-sm">Body Fat</TabsTrigger>
-            <TabsTrigger value="water" className="text-xs sm:text-sm">Water</TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          <div className="max-w-md">
+            <Label className="mb-2 block text-sm font-medium">Choose a calculator</Label>
+            <Select value={activeCalc} onValueChange={selectCalculator}>
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CALCULATORS.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    <span className="flex items-center gap-2.5">
+                      <c.icon className="size-4 text-primary" />
+                      {c.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* BMI Calculator */}
-          <TabsContent value="bmi">
+          {activeCalc === 'bmi' && (
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -308,10 +346,10 @@ export default function Calculators() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* BMR Calculator */}
-          <TabsContent value="bmr">
+          {activeCalc === 'bmr' && (
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -382,10 +420,10 @@ export default function Calculators() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* Calorie Calculator */}
-          <TabsContent value="calories">
+          {activeCalc === 'calories' && (
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -450,10 +488,10 @@ export default function Calculators() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* Body Fat Calculator */}
-          <TabsContent value="bodyfat">
+          {activeCalc === 'bodyfat' && (
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -533,10 +571,10 @@ export default function Calculators() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
           {/* Water Intake */}
-          <TabsContent value="water">
+          {activeCalc === 'water' && (
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -589,8 +627,8 @@ export default function Calculators() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
     </Layout>
   );

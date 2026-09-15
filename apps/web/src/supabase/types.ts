@@ -423,9 +423,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activity_level: string | null
           age: number | null
           available_time_minutes: number | null
           created_at: string | null
+          training_days_per_week: number | null
+          training_split: string | null
           dietary_preference: string | null
           fitness_goal: Database["public"]["Enums"]["fitness_goal"] | null
           fitness_level: Database["public"]["Enums"]["fitness_level"] | null
@@ -442,9 +445,12 @@ export type Database = {
             | null
         }
         Insert: {
+          activity_level?: string | null
           age?: number | null
           available_time_minutes?: number | null
           created_at?: string | null
+          training_days_per_week?: number | null
+          training_split?: string | null
           dietary_preference?: string | null
           fitness_goal?: Database["public"]["Enums"]["fitness_goal"] | null
           fitness_level?: Database["public"]["Enums"]["fitness_level"] | null
@@ -461,9 +467,12 @@ export type Database = {
             | null
         }
         Update: {
+          activity_level?: string | null
           age?: number | null
           available_time_minutes?: number | null
           created_at?: string | null
+          training_days_per_week?: number | null
+          training_split?: string | null
           dietary_preference?: string | null
           fitness_goal?: Database["public"]["Enums"]["fitness_goal"] | null
           fitness_level?: Database["public"]["Enums"]["fitness_level"] | null

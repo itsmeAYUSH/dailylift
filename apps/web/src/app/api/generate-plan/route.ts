@@ -1,6 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/supabase/server";
+import { geminiGenerate } from "@/lib/ai/gemini";
 import { checkRateLimit } from "@/lib/ai/rate-limit";
 import {
   workoutPlanSchema,
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
     }
     const type = parsedType.data;
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: "AI generation is not configured on the server." },
@@ -178,19 +178,14 @@ export async function POST(req: Request) {
       dailyCalorieTargetFromProfile(profile) ?? 2000;
     const prompts = buildPrompts(type, profile, dailyCalories);
 
-    // 5. Call the model.
-    const client = new Anthropic({ apiKey });
-    const message = await client.messages.create({
-      model: "claude-opus-5",
-      max_tokens: 4000,
+    // 5. Call the model (Gemini, constrained to JSON output).
+    const text = await geminiGenerate({
+      apiKey,
       system: prompts.system,
-      messages: [{ role: "user", content: prompts.user }],
+      user: prompts.user,
+      json: true,
+      maxOutputTokens: 4000,
     });
-
-    const text = message.content
-      .filter((block) => block.type === "text")
-      .map((block) => (block as { text: string }).text)
-      .join("");
 
     // 6. Validate the AI output before returning it.
     const raw = extractJson(text);
