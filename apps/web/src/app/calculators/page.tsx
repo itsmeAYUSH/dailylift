@@ -207,8 +207,8 @@ export default function Calculators() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-pink-500 animate-pulse mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading...</p>
+              <div className="w-8 h-8 rounded-full border-2 border-muted border-t-primary animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading…</p>
             </div>
           </div>
         </div>
@@ -220,14 +220,14 @@ export default function Calculators() {
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center">
-              <Calculator className="w-6 h-6 text-white" />
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+              <Calculator className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold">Health Tools</h1>
-              <p className="text-muted-foreground">Calculate your fitness metrics</p>
+              <h1 className="font-display text-2xl font-bold">Health calculators</h1>
+              <p className="text-sm text-muted-foreground">Understand your key fitness metrics</p>
             </div>
           </div>
         </div>

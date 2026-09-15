@@ -9,11 +9,16 @@ export const metadata: Metadata = {
   },
   description:
     "AI-generated workout and meal plans tailored to your goals, level, and schedule.",
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b1220",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1120" },
+  ],
   width: "device-width",
   initialScale: 1,
 };

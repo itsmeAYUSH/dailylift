@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@dailylift/ui/componen
 import { Badge } from '@dailylift/ui/components/badge';
 import { Progress } from '@dailylift/ui/components/progress';
 import { useAuthStore } from '@/stores/authStore';
+import { dailyCalorieTargetFromProfile } from '@/lib/fitness/calculations';
 import { toast } from 'sonner';
-import { 
-  UtensilsCrossed, 
+import {
+  UtensilsCrossed,
   Clock, 
   Flame, 
   Zap,
@@ -21,7 +22,12 @@ import {
   Apple,
   Beef,
   Wheat,
-  Check
+  Check,
+  Sunrise,
+  Sun,
+  Moon,
+  Cookie,
+  Utensils
 } from 'lucide-react';
 
 interface Meal {
@@ -62,46 +68,20 @@ export default function Meals() {
     }
   }, [user, isLoading, isInitialized, router]);
 
-  const calculateDailyCalories = () => {
-    if (!profile?.height_cm || !profile?.weight_kg) return 2000;
-    
-    const height = profile.height_cm / 100;
-    const weight = profile.weight_kg;
-    
-    let bmr = 10 * weight + 6.25 * profile.height_cm - 5 * (profile.age || 25);
-    bmr += profile.gender === 'male' ? 5 : -161;
-    
-    const activityMultiplier = 
-      profile.workout_preference === 'gym' ? 1.55 :
-      profile.workout_preference === 'outdoor' ? 1.725 :
-      1.375;
-    
-    let dailyCalories = Math.round(bmr * activityMultiplier);
-    
-    // Adjust based on goal
-    if (profile.fitness_goal === 'weight_loss') {
-      dailyCalories -= 500; // 500 calorie deficit
-    } else if (profile.fitness_goal === 'muscle_gain') {
-      dailyCalories += 300; // 300 calorie surplus
-    }
-    
-    return dailyCalories;
-  };
+  // Shared with the server route so the displayed target matches what the AI
+  // is asked to hit. Falls back to 2000 when biometrics are missing.
+  const calculateDailyCalories = () =>
+    dailyCalorieTargetFromProfile(profile ?? {}) ?? 2000;
 
   const generateMealPlan = async () => {
     if (!profile) return;
-    
+
     setGenerating(true);
     try {
-      const dailyCalories = calculateDailyCalories();
-      
       const res = await fetch('/api/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'meal',
-          profile: { ...profile, daily_calories: dailyCalories },
-        }),
+        body: JSON.stringify({ type: 'meal' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to generate meal plan');
@@ -129,11 +109,11 @@ export default function Meals() {
 
   const getMealIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'breakfast': return '🌅';
-      case 'lunch': return '☀️';
-      case 'dinner': return '🌙';
-      case 'snack': return '🍎';
-      default: return '🍽️';
+      case 'breakfast': return Sunrise;
+      case 'lunch': return Sun;
+      case 'dinner': return Moon;
+      case 'snack': return Cookie;
+      default: return Utensils;
     }
   };
 
@@ -147,8 +127,8 @@ export default function Meals() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full gradient-accent animate-pulse mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading...</p>
+              <div className="w-8 h-8 rounded-full border-2 border-muted border-t-primary animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading…</p>
             </div>
           </div>
         </div>
@@ -160,45 +140,44 @@ export default function Meals() {
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center">
-              <UtensilsCrossed className="w-6 h-6 text-accent-foreground" />
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+              <UtensilsCrossed className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold">AI Meal Planner</h1>
-              <p className="text-muted-foreground">Get a personalized nutrition plan for today</p>
+              <h1 className="font-display text-2xl font-bold">Meal planner</h1>
+              <p className="text-sm text-muted-foreground">A personalized nutrition plan for today</p>
             </div>
           </div>
         </div>
 
         {/* Generate Button */}
         {!mealPlan && (
-          <Card className="glass mb-8 animate-fade-in-up">
+          <Card className="mb-8">
             <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 rounded-2xl gradient-accent flex items-center justify-center mx-auto mb-6">
-                <Apple className="w-10 h-10 text-accent-foreground" />
+              <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center mx-auto mb-5">
+                <Apple className="w-7 h-7 text-primary" />
               </div>
-              <h2 className="font-display text-2xl font-bold mb-2">Ready to Eat Right?</h2>
+              <h2 className="font-display text-xl font-bold mb-2">Generate today's meals</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Our AI will create a personalized meal plan based on your goal ({profile?.fitness_goal?.replace('_', ' ')}), 
-                dietary preference ({profile?.dietary_preference?.replace('_', ' ')}), and calorie needs ({calculateDailyCalories()} cal).
+                We'll build a plan around your {profile?.fitness_goal?.replace('_', ' ')} goal,
+                {' '}{profile?.dietary_preference?.replace('_', ' ')} preference, and {calculateDailyCalories()} cal target.
               </p>
-              <Button 
-                variant="gradient-accent" 
-                size="xl" 
+              <Button
+                size="xl"
                 onClick={generateMealPlan}
                 disabled={generating}
               >
                 {generating ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin mr-2" />
-                    Creating Your Meal Plan...
+                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
+                    Creating your plan…
                   </>
                 ) : (
                   <>
                     <Zap className="w-5 h-5 mr-2" />
-                    Generate Today's Meals
+                    Generate today's meals
                   </>
                 )}
               </Button>
@@ -210,22 +189,22 @@ export default function Meals() {
         {mealPlan && (
           <div className="space-y-6 animate-fade-in-up">
             {/* Plan Header */}
-            <Card className="glass overflow-hidden">
-              <div className="p-6 gradient-accent">
+            <Card className="overflow-hidden">
+              <div className="p-6 bg-primary">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display text-2xl font-bold text-accent-foreground">{mealPlan.title}</h2>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <h2 className="font-display text-xl font-bold text-primary-foreground">{mealPlan.title}</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={generateMealPlan}
                     disabled={generating}
-                    className="text-accent-foreground hover:bg-accent-foreground/20"
+                    className="text-primary-foreground hover:bg-primary-foreground/15"
                   >
                     <RotateCcw className="w-4 h-4 mr-2" />
                     Regenerate
                   </Button>
                 </div>
-                <div className="grid grid-cols-4 gap-4 text-accent-foreground">
+                <div className="grid grid-cols-4 gap-4 text-primary-foreground">
                   <div className="text-center">
                     <Flame className="w-5 h-5 mx-auto mb-1 opacity-80" />
                     <p className="text-2xl font-bold">{mealPlan.total_calories}</p>
@@ -293,13 +272,18 @@ export default function Meals() {
                           e.stopPropagation();
                           toggleMeal(index);
                         }}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all text-xl ${
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                           completedMeals.has(index)
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary hover:bg-primary/20'
+                            : 'bg-secondary text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        {completedMeals.has(index) ? <Check className="w-5 h-5" /> : getMealIcon(meal.type)}
+                        {(() => {
+                          const MealIcon = getMealIcon(meal.type);
+                          return completedMeals.has(index)
+                            ? <Check className="w-5 h-5" />
+                            : <MealIcon className="w-5 h-5" />;
+                        })()}
                       </button>
                       
                       <div className="flex-1">
@@ -371,7 +355,7 @@ export default function Meals() {
                         {/* Instructions */}
                         <div>
                           <h4 className="font-medium mb-2 flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-accent" />
+                            <Clock className="w-4 h-4 text-primary" />
                             Instructions ({meal.prep_time})
                           </h4>
                           <p className="text-sm text-muted-foreground">{meal.instructions}</p>
@@ -405,7 +389,7 @@ export default function Meals() {
                 <ul className="space-y-2">
                   {mealPlan.tips.map((tip, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                      <span className="w-5 h-5 rounded-full bg-accent text-primary flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
                         {index + 1}
                       </span>
                       <span className="text-muted-foreground">{tip}</span>

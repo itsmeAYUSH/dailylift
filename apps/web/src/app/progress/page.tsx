@@ -189,8 +189,8 @@ export default function Progress() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-violet-500 animate-pulse mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading...</p>
+              <div className="w-8 h-8 rounded-full border-2 border-muted border-t-primary animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading…</p>
             </div>
           </div>
         </div>
@@ -202,14 +202,14 @@ export default function Progress() {
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold">Progress Tracker</h1>
-              <p className="text-muted-foreground">Log your daily fitness journey</p>
+              <h1 className="font-display text-2xl font-bold">Progress tracker</h1>
+              <p className="text-sm text-muted-foreground">Log your daily activity and weight</p>
             </div>
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function Progress() {
           
           <Card className="glass">
             <CardContent className="p-4 text-center">
-              <UtensilsCrossed className="w-6 h-6 text-accent mx-auto mb-2" />
+              <UtensilsCrossed className="w-6 h-6 text-primary mx-auto mb-2" />
               <p className="text-2xl font-bold">
                 {logs.filter(l => l.meals_followed).length}
               </p>
@@ -334,7 +334,7 @@ export default function Progress() {
               {/* Meals Followed */}
               <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
                 <div className="flex items-center gap-3">
-                  <UtensilsCrossed className="w-5 h-5 text-accent" />
+                  <UtensilsCrossed className="w-5 h-5 text-primary" />
                   <div>
                     <Label htmlFor="meals">Followed Meal Plan</Label>
                     <p className="text-xs text-muted-foreground">Did you follow your nutrition plan?</p>
@@ -384,8 +384,8 @@ export default function Progress() {
           <Card className="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-violet-400" />
-                Recent Activity
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Recent activity
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -428,11 +428,11 @@ export default function Progress() {
                         </div>
                         <div className="flex items-center gap-1 text-sm">
                           {log.meals_followed ? (
-                            <CheckCircle2 className="w-4 h-4 text-accent" />
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
                           ) : (
                             <XCircle className="w-4 h-4 text-muted-foreground" />
                           )}
-                          <span className={log.meals_followed ? 'text-accent' : 'text-muted-foreground'}>
+                          <span className={log.meals_followed ? 'text-primary' : 'text-muted-foreground'}>
                             Meals
                           </span>
                         </div>

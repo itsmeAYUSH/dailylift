@@ -36,7 +36,7 @@ interface AuthState {
   fetchProfile: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   signOut: () => Promise<void>;
-  initialize: () => void;
+  initialize: () => () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -72,17 +72,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   
   updateProfile: async (updates) => {
     const { user } = get();
-    if (!user) return;
+    if (!user) {
+      throw new Error('Your session has expired. Please sign in again.');
+    }
     
+    // A profile is normally created by the auth trigger. Upsert also supports
+    // users created before that trigger existed (or if a prior trigger run
+    // failed), so onboarding can always save its first set of preferences.
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
-      .eq('user_id', user.id)
+      .upsert({ ...updates, user_id: user.id }, { onConflict: 'user_id' })
       .select()
       .single();
     
     if (error) {
       console.error('Error updating profile:', error);
+      if (error.code === 'PGRST205') {
+        throw new Error(
+          'Database setup is incomplete: run the profiles schema migration in Supabase.',
+        );
+      }
       throw error;
     }
     
@@ -95,8 +104,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   initialize: () => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      set({ session, user: session?.user ?? null });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // The auth event already contains the restored session. Mark the store
+      // ready here as well as in getSession() so a delayed getSession call
+      // cannot keep protected pages on their loading screen.
+      set({
+        session,
+        user: session?.user ?? null,
+        isLoading: false,
+        isInitialized: true,
+      });
       
       if (session?.user) {
         setTimeout(() => {
@@ -107,17 +124,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     });
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      set({ 
-        session, 
-        user: session?.user ?? null, 
-        isLoading: false,
-        isInitialized: true 
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        set({
+          session,
+          user: session?.user ?? null,
+          isLoading: false,
+          isInitialized: true,
+        });
+
+        if (session?.user) {
+          get().fetchProfile();
+        }
+      })
+      .catch((error) => {
+        console.error('Error restoring session:', error);
+        set({ session: null, user: null, profile: null, isLoading: false, isInitialized: true });
       });
-      
-      if (session?.user) {
-        get().fetchProfile();
-      }
-    });
+
+    return () => subscription.unsubscribe();
   },
 }));

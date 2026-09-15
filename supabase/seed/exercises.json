@@ -1,0 +1,725 @@
+[
+  {
+    "slug": "barbell-bench-press",
+    "name": "Barbell Bench Press",
+    "primary_muscle": "chest",
+    "secondary_muscles": ["triceps", "shoulders"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "push",
+    "difficulty": "intermediate",
+    "environment": "gym",
+    "instructions": [
+      "Lie flat on the bench with feet planted and eyes under the bar.",
+      "Grip slightly wider than shoulder width and unrack the bar.",
+      "Lower the bar to mid-chest with elbows about 45 degrees.",
+      "Press back up until arms are extended without locking out hard."
+    ],
+    "common_mistakes": ["Flaring elbows to 90 degrees", "Bouncing the bar off the chest", "Lifting hips off the bench"],
+    "safety_notes": "Use a spotter or safety pins when training near failure.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "incline-dumbbell-press",
+    "name": "Incline Dumbbell Press",
+    "primary_muscle": "chest",
+    "secondary_muscles": ["shoulders", "triceps"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Set the bench to about 30 degrees.",
+      "Press dumbbells up from shoulder level until arms are extended.",
+      "Lower under control until you feel a stretch across the upper chest."
+    ],
+    "common_mistakes": ["Setting the incline too steep", "Clashing the dumbbells at the top"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "push-up",
+    "name": "Push-Up",
+    "primary_muscle": "chest",
+    "secondary_muscles": ["triceps", "shoulders", "core"],
+    "equipment": "bodyweight",
+    "exercise_type": "compound",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Start in a plank with hands slightly wider than shoulders.",
+      "Keep a straight line from head to heels and brace your core.",
+      "Lower until your chest is just above the floor, then press back up."
+    ],
+    "common_mistakes": ["Sagging hips", "Flaring elbows wide", "Partial range of motion"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "cable-fly",
+    "name": "Cable Chest Fly",
+    "primary_muscle": "chest",
+    "secondary_muscles": ["shoulders"],
+    "equipment": "cable",
+    "exercise_type": "isolation",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Set cables to chest height and take a staggered stance.",
+      "With a slight elbow bend, bring the handles together in front of you.",
+      "Control the return until you feel a stretch across the chest."
+    ],
+    "common_mistakes": ["Turning it into a press", "Using too much weight and losing the stretch"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "pull-up",
+    "name": "Pull-Up",
+    "primary_muscle": "back",
+    "secondary_muscles": ["biceps", "core"],
+    "equipment": "bodyweight",
+    "exercise_type": "compound",
+    "movement_pattern": "pull",
+    "difficulty": "intermediate",
+    "environment": "both",
+    "instructions": [
+      "Hang from a bar with an overhand grip slightly wider than shoulders.",
+      "Pull your chest toward the bar by driving elbows down.",
+      "Lower under control to a full hang."
+    ],
+    "common_mistakes": ["Kipping unintentionally", "Not reaching full extension at the bottom"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "lat-pulldown",
+    "name": "Lat Pulldown",
+    "primary_muscle": "back",
+    "secondary_muscles": ["biceps"],
+    "equipment": "cable",
+    "exercise_type": "compound",
+    "movement_pattern": "pull",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Grip the bar wider than shoulder width and sit with thighs secured.",
+      "Pull the bar to your upper chest, leading with the elbows.",
+      "Control the bar back up to a full stretch."
+    ],
+    "common_mistakes": ["Leaning back excessively", "Pulling behind the neck"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "bent-over-barbell-row",
+    "name": "Bent-Over Barbell Row",
+    "primary_muscle": "back",
+    "secondary_muscles": ["biceps", "hamstrings"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "pull",
+    "difficulty": "intermediate",
+    "environment": "gym",
+    "instructions": [
+      "Hinge at the hips with a flat back and soft knees.",
+      "Row the bar to your lower ribs, squeezing the shoulder blades.",
+      "Lower under control without rounding the back."
+    ],
+    "common_mistakes": ["Rounding the lower back", "Using momentum to heave the weight"],
+    "safety_notes": "Keep the load moderate to protect a neutral spine.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "seated-cable-row",
+    "name": "Seated Cable Row",
+    "primary_muscle": "back",
+    "secondary_muscles": ["biceps"],
+    "equipment": "cable",
+    "exercise_type": "compound",
+    "movement_pattern": "pull",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Sit tall with a slight lean and grab the handle.",
+      "Pull to your stomach, driving the elbows back.",
+      "Return under control to a full stretch."
+    ],
+    "common_mistakes": ["Excessive back swing", "Shrugging the shoulders"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "overhead-press",
+    "name": "Overhead Press",
+    "primary_muscle": "shoulders",
+    "secondary_muscles": ["triceps", "core"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "push",
+    "difficulty": "intermediate",
+    "environment": "gym",
+    "instructions": [
+      "Hold the bar at shoulder height with hands just outside shoulders.",
+      "Brace your core and press overhead, moving your head back then through.",
+      "Lock out overhead, then lower under control."
+    ],
+    "common_mistakes": ["Excessive lower-back arch", "Pressing the bar around the face"],
+    "safety_notes": "Brace hard and avoid leaning back to protect the lower back.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "dumbbell-lateral-raise",
+    "name": "Dumbbell Lateral Raise",
+    "primary_muscle": "shoulders",
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "exercise_type": "isolation",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Stand with dumbbells at your sides, elbows slightly bent.",
+      "Raise the weights out to the sides to about shoulder height.",
+      "Lower slowly under control."
+    ],
+    "common_mistakes": ["Using momentum", "Shrugging the traps", "Going far above shoulder height"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "face-pull",
+    "name": "Face Pull",
+    "primary_muscle": "shoulders",
+    "secondary_muscles": ["back"],
+    "equipment": "cable",
+    "exercise_type": "isolation",
+    "movement_pattern": "pull",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Set a rope at upper-chest height.",
+      "Pull the rope toward your face, splitting it apart as you go.",
+      "Control the return."
+    ],
+    "common_mistakes": ["Using too much weight", "Letting the elbows drop"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "barbell-curl",
+    "name": "Barbell Biceps Curl",
+    "primary_muscle": "biceps",
+    "secondary_muscles": ["forearms"],
+    "equipment": "barbell",
+    "exercise_type": "isolation",
+    "movement_pattern": "pull",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Hold the bar with an underhand shoulder-width grip.",
+      "Curl the bar up by flexing the elbows, keeping them at your sides.",
+      "Lower under control to full extension."
+    ],
+    "common_mistakes": ["Swinging the torso", "Letting elbows drift forward"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "dumbbell-hammer-curl",
+    "name": "Dumbbell Hammer Curl",
+    "primary_muscle": "biceps",
+    "secondary_muscles": ["forearms"],
+    "equipment": "dumbbell",
+    "exercise_type": "isolation",
+    "movement_pattern": "pull",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Hold dumbbells with a neutral (palms-facing) grip.",
+      "Curl up while keeping the wrists neutral.",
+      "Lower under control."
+    ],
+    "common_mistakes": ["Swinging", "Partial range of motion"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "triceps-pushdown",
+    "name": "Triceps Rope Pushdown",
+    "primary_muscle": "triceps",
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "exercise_type": "isolation",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Attach a rope to a high pulley and grab it with a neutral grip.",
+      "Keep elbows pinned and extend down, spreading the rope at the bottom.",
+      "Control the return to about 90 degrees."
+    ],
+    "common_mistakes": ["Letting elbows flare and drift", "Using the shoulders"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "overhead-dumbbell-extension",
+    "name": "Overhead Dumbbell Triceps Extension",
+    "primary_muscle": "triceps",
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "exercise_type": "isolation",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Hold one dumbbell overhead with both hands.",
+      "Lower behind your head by bending the elbows.",
+      "Extend back overhead under control."
+    ],
+    "common_mistakes": ["Flaring elbows wide", "Arching the lower back"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "barbell-back-squat",
+    "name": "Barbell Back Squat",
+    "primary_muscle": "quads",
+    "secondary_muscles": ["glutes", "hamstrings", "core"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "squat",
+    "difficulty": "intermediate",
+    "environment": "gym",
+    "instructions": [
+      "Set the bar on your upper back and stand with feet shoulder-width.",
+      "Brace, then sit down and back until thighs are at least parallel.",
+      "Drive up through mid-foot to standing."
+    ],
+    "common_mistakes": ["Knees caving in", "Heels lifting", "Rounding the lower back"],
+    "safety_notes": "Squat inside a rack with safety pins set below depth.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "goblet-squat",
+    "name": "Goblet Squat",
+    "primary_muscle": "quads",
+    "secondary_muscles": ["glutes", "core"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "squat",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Hold a dumbbell or kettlebell at chest height.",
+      "Squat down keeping your torso upright and elbows inside the knees.",
+      "Drive back up to standing."
+    ],
+    "common_mistakes": ["Rounding forward", "Heels rising"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "leg-press",
+    "name": "Leg Press",
+    "primary_muscle": "quads",
+    "secondary_muscles": ["glutes", "hamstrings"],
+    "equipment": "machine",
+    "exercise_type": "compound",
+    "movement_pattern": "squat",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Sit in the machine with feet shoulder-width on the platform.",
+      "Lower the platform until knees reach about 90 degrees.",
+      "Press back without locking the knees hard."
+    ],
+    "common_mistakes": ["Letting the lower back round at the bottom", "Locking knees aggressively"],
+    "safety_notes": "Do not let the knees collapse inward under load.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "romanian-deadlift",
+    "name": "Romanian Deadlift",
+    "primary_muscle": "hamstrings",
+    "secondary_muscles": ["glutes", "back"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "hinge",
+    "difficulty": "intermediate",
+    "environment": "gym",
+    "instructions": [
+      "Hold the bar at your thighs with a flat back.",
+      "Push the hips back, lowering the bar along your legs until you feel a hamstring stretch.",
+      "Drive the hips forward to stand tall."
+    ],
+    "common_mistakes": ["Rounding the back", "Turning it into a squat", "Bar drifting away from the legs"],
+    "safety_notes": "Keep the bar close and stop when the back would otherwise round.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "lying-leg-curl",
+    "name": "Lying Leg Curl",
+    "primary_muscle": "hamstrings",
+    "secondary_muscles": ["calves"],
+    "equipment": "machine",
+    "exercise_type": "isolation",
+    "movement_pattern": "hinge",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Lie face down with the pad above your heels.",
+      "Curl your heels toward your glutes.",
+      "Lower under control."
+    ],
+    "common_mistakes": ["Lifting hips off the pad", "Using momentum"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "conventional-deadlift",
+    "name": "Conventional Deadlift",
+    "primary_muscle": "back",
+    "secondary_muscles": ["glutes", "hamstrings", "core"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "hinge",
+    "difficulty": "advanced",
+    "environment": "gym",
+    "instructions": [
+      "Set up with the bar over mid-foot and shins close.",
+      "Grip the bar, brace, and take the slack out.",
+      "Drive the floor away and stand tall, then lower with control."
+    ],
+    "common_mistakes": ["Rounding the back", "Jerking the bar off the floor", "Hips shooting up first"],
+    "safety_notes": "Prioritize a braced, neutral spine over load.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "hip-thrust",
+    "name": "Barbell Hip Thrust",
+    "primary_muscle": "glutes",
+    "secondary_muscles": ["hamstrings"],
+    "equipment": "barbell",
+    "exercise_type": "compound",
+    "movement_pattern": "hinge",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Sit with your upper back against a bench and the bar over your hips.",
+      "Drive through your heels to lift the hips until the torso is parallel to the floor.",
+      "Squeeze the glutes at the top, then lower under control."
+    ],
+    "common_mistakes": ["Overextending the lower back", "Pushing through the toes"],
+    "safety_notes": "Use a pad and avoid hyperextending at the top.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "walking-lunge",
+    "name": "Walking Lunge",
+    "primary_muscle": "quads",
+    "secondary_muscles": ["glutes", "hamstrings"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "lunge",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Hold dumbbells at your sides.",
+      "Step forward and lower until both knees are about 90 degrees.",
+      "Drive through the front heel and step into the next lunge."
+    ],
+    "common_mistakes": ["Front knee caving in", "Short, unstable steps"],
+    "safety_notes": null,
+    "is_unilateral": true
+  },
+  {
+    "slug": "standing-calf-raise",
+    "name": "Standing Calf Raise",
+    "primary_muscle": "calves",
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "exercise_type": "isolation",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Stand with the balls of your feet on a raised surface.",
+      "Rise onto your toes as high as possible.",
+      "Lower slowly for a full stretch."
+    ],
+    "common_mistakes": ["Bouncing", "Partial range of motion"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "plank",
+    "name": "Plank",
+    "primary_muscle": "core",
+    "secondary_muscles": ["shoulders"],
+    "equipment": "bodyweight",
+    "exercise_type": "isolation",
+    "movement_pattern": "core",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Rest on your forearms and toes with a straight body line.",
+      "Brace your core and squeeze your glutes.",
+      "Hold for the target time without sagging."
+    ],
+    "common_mistakes": ["Hips sagging or piking up", "Holding your breath"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "hanging-leg-raise",
+    "name": "Hanging Leg Raise",
+    "primary_muscle": "core",
+    "secondary_muscles": ["hip flexors"],
+    "equipment": "bodyweight",
+    "exercise_type": "isolation",
+    "movement_pattern": "core",
+    "difficulty": "intermediate",
+    "environment": "both",
+    "instructions": [
+      "Hang from a bar with a controlled grip.",
+      "Raise your legs to about hip height or higher, keeping them straight.",
+      "Lower under control without swinging."
+    ],
+    "common_mistakes": ["Swinging for momentum", "Using only the hip flexors"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "cable-crunch",
+    "name": "Cable Crunch",
+    "primary_muscle": "core",
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "exercise_type": "isolation",
+    "movement_pattern": "core",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Kneel below a rope attachment and hold it by your head.",
+      "Crunch down by flexing the spine, bringing elbows toward the thighs.",
+      "Return under control."
+    ],
+    "common_mistakes": ["Pulling with the arms", "Hinging at the hips instead of crunching"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "treadmill-run",
+    "name": "Treadmill Run",
+    "primary_muscle": "cardio",
+    "secondary_muscles": ["quads", "calves"],
+    "equipment": "machine",
+    "exercise_type": "cardio",
+    "movement_pattern": "cardio",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Set a comfortable pace and incline.",
+      "Maintain an upright posture and relaxed arms.",
+      "Keep to your target duration or distance."
+    ],
+    "common_mistakes": ["Holding the handrails", "Overstriding"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "jump-rope",
+    "name": "Jump Rope",
+    "primary_muscle": "cardio",
+    "secondary_muscles": ["calves", "shoulders"],
+    "equipment": "other",
+    "exercise_type": "cardio",
+    "movement_pattern": "cardio",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Turn the rope with your wrists, not your arms.",
+      "Jump just high enough to clear the rope.",
+      "Land softly on the balls of your feet."
+    ],
+    "common_mistakes": ["Jumping too high", "Swinging from the shoulders"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "burpee",
+    "name": "Burpee",
+    "primary_muscle": "cardio",
+    "secondary_muscles": ["chest", "quads", "core"],
+    "equipment": "bodyweight",
+    "exercise_type": "cardio",
+    "movement_pattern": "cardio",
+    "difficulty": "intermediate",
+    "environment": "both",
+    "instructions": [
+      "From standing, drop into a squat and place your hands down.",
+      "Kick your feet back to a plank and perform a push-up.",
+      "Return your feet and jump up explosively."
+    ],
+    "common_mistakes": ["Sagging hips in the plank", "Skipping the push-up depth"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "mountain-climber",
+    "name": "Mountain Climber",
+    "primary_muscle": "core",
+    "secondary_muscles": ["shoulders", "quads"],
+    "equipment": "bodyweight",
+    "exercise_type": "cardio",
+    "movement_pattern": "core",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Start in a strong plank position.",
+      "Drive one knee toward your chest, then switch quickly.",
+      "Keep your hips low and core braced throughout."
+    ],
+    "common_mistakes": ["Hips rising too high", "Losing the plank line"],
+    "safety_notes": null,
+    "is_unilateral": true
+  },
+  {
+    "slug": "dumbbell-shoulder-press",
+    "name": "Dumbbell Shoulder Press",
+    "primary_muscle": "shoulders",
+    "secondary_muscles": ["triceps"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Sit or stand with dumbbells at shoulder height.",
+      "Press overhead until arms are extended.",
+      "Lower under control to the starting position."
+    ],
+    "common_mistakes": ["Arching the lower back", "Pressing the weights forward instead of up"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "chin-up",
+    "name": "Chin-Up",
+    "primary_muscle": "back",
+    "secondary_muscles": ["biceps"],
+    "equipment": "bodyweight",
+    "exercise_type": "compound",
+    "movement_pattern": "pull",
+    "difficulty": "intermediate",
+    "environment": "both",
+    "instructions": [
+      "Hang from a bar with an underhand shoulder-width grip.",
+      "Pull until your chin clears the bar.",
+      "Lower under control to a full hang."
+    ],
+    "common_mistakes": ["Not reaching full extension", "Kipping"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "dumbbell-romanian-deadlift",
+    "name": "Dumbbell Romanian Deadlift",
+    "primary_muscle": "hamstrings",
+    "secondary_muscles": ["glutes", "back"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "hinge",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Hold dumbbells in front of your thighs.",
+      "Hinge at the hips, lowering the weights along your legs.",
+      "Drive the hips forward to stand tall."
+    ],
+    "common_mistakes": ["Rounding the back", "Bending the knees too much"],
+    "safety_notes": "Stop the descent before the lower back rounds.",
+    "is_unilateral": false
+  },
+  {
+    "slug": "bulgarian-split-squat",
+    "name": "Bulgarian Split Squat",
+    "primary_muscle": "quads",
+    "secondary_muscles": ["glutes", "hamstrings"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "lunge",
+    "difficulty": "intermediate",
+    "environment": "both",
+    "instructions": [
+      "Rest your rear foot on a bench behind you.",
+      "Lower straight down until the front thigh is about parallel.",
+      "Drive through the front heel to stand."
+    ],
+    "common_mistakes": ["Front knee caving", "Leaning too far forward"],
+    "safety_notes": null,
+    "is_unilateral": true
+  },
+  {
+    "slug": "glute-bridge",
+    "name": "Glute Bridge",
+    "primary_muscle": "glutes",
+    "secondary_muscles": ["hamstrings"],
+    "equipment": "bodyweight",
+    "exercise_type": "isolation",
+    "movement_pattern": "hinge",
+    "difficulty": "beginner",
+    "environment": "home",
+    "instructions": [
+      "Lie on your back with knees bent and feet flat.",
+      "Drive through your heels to lift the hips.",
+      "Squeeze the glutes at the top, then lower."
+    ],
+    "common_mistakes": ["Overarching the lower back", "Pushing through the toes"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "machine-chest-press",
+    "name": "Machine Chest Press",
+    "primary_muscle": "chest",
+    "secondary_muscles": ["triceps", "shoulders"],
+    "equipment": "machine",
+    "exercise_type": "compound",
+    "movement_pattern": "push",
+    "difficulty": "beginner",
+    "environment": "gym",
+    "instructions": [
+      "Adjust the seat so the handles are at mid-chest.",
+      "Press the handles forward until arms are extended.",
+      "Return under control to a stretch."
+    ],
+    "common_mistakes": ["Setting the seat too high or low", "Locking out aggressively"],
+    "safety_notes": null,
+    "is_unilateral": false
+  },
+  {
+    "slug": "dumbbell-row",
+    "name": "Single-Arm Dumbbell Row",
+    "primary_muscle": "back",
+    "secondary_muscles": ["biceps"],
+    "equipment": "dumbbell",
+    "exercise_type": "compound",
+    "movement_pattern": "pull",
+    "difficulty": "beginner",
+    "environment": "both",
+    "instructions": [
+      "Brace one hand and knee on a bench with a flat back.",
+      "Row the dumbbell to your hip, leading with the elbow.",
+      "Lower under control to a full stretch."
+    ],
+    "common_mistakes": ["Rotating the torso to lift", "Shrugging the shoulder"],
+    "safety_notes": null,
+    "is_unilateral": true
+  }
+]

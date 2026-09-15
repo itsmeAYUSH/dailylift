@@ -82,7 +82,7 @@ export default function Workouts() {
       const res = await fetch('/api/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'workout', profile }),
+        body: JSON.stringify({ type: 'workout' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to generate workout');
@@ -133,8 +133,8 @@ export default function Workouts() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full gradient-primary animate-pulse mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading...</p>
+              <div className="w-8 h-8 rounded-full border-2 border-muted border-t-primary animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading…</p>
             </div>
           </div>
         </div>
@@ -146,29 +146,29 @@ export default function Workouts() {
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-primary-foreground" />
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+              <Dumbbell className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold">AI Workout Generator</h1>
-              <p className="text-muted-foreground">Get a personalized workout for today</p>
+              <h1 className="font-display text-2xl font-bold">Workout generator</h1>
+              <p className="text-sm text-muted-foreground">A personalized routine for today</p>
             </div>
           </div>
         </div>
 
         {/* Generate Button */}
         {!workout && (
-          <Card className="glass mb-8 animate-fade-in-up">
+          <Card className="mb-8">
             <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-6">
-                <Zap className="w-10 h-10 text-primary-foreground" />
+              <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center mx-auto mb-5">
+                <Zap className="w-7 h-7 text-primary" />
               </div>
-              <h2 className="font-display text-2xl font-bold mb-2">Ready to Train?</h2>
+              <h2 className="font-display text-xl font-bold mb-2">Generate today's workout</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Our AI will create a personalized workout based on your fitness level ({profile?.fitness_level}), 
-                goal ({profile?.fitness_goal?.replace('_', ' ')}), and available time ({profile?.available_time_minutes} min).
+                We'll build a routine around your {profile?.fitness_level} level,
+                {' '}{profile?.fitness_goal?.replace('_', ' ')} goal, and {profile?.available_time_minutes} minutes available.
               </p>
               <Button 
                 variant="gradient" 

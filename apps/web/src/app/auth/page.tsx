@@ -1,15 +1,14 @@
 "use client";
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@dailylift/ui/components/button';
 import { Input } from '@dailylift/ui/components/input';
 import { Label } from '@dailylift/ui/components/label';
-import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/supabase/client';
 import { toast } from 'sonner';
-import { Activity, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import { Activity, Mail, Lock, User, ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -21,20 +20,28 @@ const authSchema = z.object({
 function AuthForm() {
   const searchParams = useSearchParams();
   const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'signup');
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const router = useRouter();
-  const { user, isInitialized } = useAuthStore();
+  const redirectPath = searchParams.get('redirect');
+  const destination = redirectPath?.startsWith('/') && !redirectPath.startsWith('//')
+    ? redirectPath
+    : '/dashboard';
 
   useEffect(() => {
-    if (isInitialized && user) {
-      router.push('/dashboard');
-    }
-  }, [user, isInitialized, router]);
+    if (resendCooldown === 0) return;
+    const timer = window.setInterval(() => {
+      setResendCooldown((remaining) => Math.max(remaining - 1, 0));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
 
   const validateForm = () => {
     try {
@@ -68,9 +75,9 @@ function AuthForm() {
 
     try {
       if (isSignUp) {
-        const redirectUrl = `${window.location.origin}/`;
+        const redirectUrl = `${window.location.origin}/auth/callback?next=/onboarding`;
         
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -90,8 +97,14 @@ function AuthForm() {
           return;
         }
 
-        toast.success('Account created successfully!');
-        router.push('/onboarding');
+        if (data.session) {
+          toast.success('Account created successfully!');
+          router.replace('/onboarding');
+        } else {
+          setConfirmationEmail(email);
+          setResendCooldown(60);
+          toast.success('Check your email to confirm your account.');
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -108,7 +121,7 @@ function AuthForm() {
         }
 
         toast.success('Welcome back!');
-        router.push('/dashboard');
+        router.replace(destination);
       }
     } catch (error) {
       toast.error('An unexpected error occurred. Please try again.');
@@ -122,7 +135,7 @@ function AuthForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
         },
       });
 
@@ -134,42 +147,81 @@ function AuthForm() {
     }
   };
 
-  return (
-    <div className="min-h-screen gradient-dark flex items-center justify-center p-4">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+  if (confirmationEmail) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-sm text-center space-y-5">
+          <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center mx-auto">
+            <Mail className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="font-display text-2xl font-bold">Confirm your email</h1>
+            <p className="text-muted-foreground mt-2">
+              We sent a confirmation link to {confirmationEmail}. Open it to continue to onboarding.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={isLoading || resendCooldown > 0}
+            onClick={async () => {
+              setIsLoading(true);
+              const { error } = await supabase.auth.resend({ type: 'signup', email: confirmationEmail });
+              setIsLoading(false);
+              if (error) {
+                const isRateLimited = error.code === 'over_email_send_rate_limit' || error.status === 429;
+                toast.error(
+                  isRateLimited
+                    ? 'Email sending is temporarily limited by Supabase. Please wait up to an hour before trying again.'
+                    : error.message,
+                );
+                return;
+              }
+              setResendCooldown(60);
+              toast.success('Confirmation email resent.');
+            }}
+          >
+            {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Resend confirmation email'}
+          </Button>
+          <button type="button" className="text-sm text-primary hover:underline" onClick={() => setConfirmationEmail(null)}>
+            Back to sign in
+          </button>
+        </div>
       </div>
+    );
+  }
 
-      <div className="w-full max-w-md relative z-10">
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to home
         </Link>
 
         {/* Card */}
-        <div className="glass rounded-2xl p-8 animate-scale-in">
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm animate-fade-in">
           {/* Logo */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-              <Activity className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-center gap-2.5 mb-8">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Activity className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-2xl">
-              Fit<span className="text-gradient">AI</span>
+            <span className="font-display font-bold text-xl tracking-tight">
+              DailyLift
             </span>
           </div>
 
           {/* Title */}
           <div className="text-center mb-8">
-            <h1 className="font-display text-2xl font-bold mb-2">
+            <h1 className="font-display text-2xl font-bold mb-1.5">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </h1>
             <p className="text-muted-foreground">
-              {isSignUp 
-                ? 'Start your fitness journey today' 
-                : 'Sign in to continue your journey'
+              {isSignUp
+                ? 'Set up your profile and get your first plan'
+                : 'Sign in to continue where you left off'
               }
             </p>
           </div>
@@ -220,15 +272,29 @@ function AuthForm() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
-                  type="password"
+                  type={isPasswordVisible ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 pr-10"
                 />
+                <button
+                  type="button"
+                  aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}
+                  aria-pressed={isPasswordVisible}
+                  onClick={() => setIsPasswordVisible((visible) => !visible)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {isPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
+              )}
+              {!isSignUp && (
+                <Link href="/auth/forgot-password" className="block w-fit text-sm text-primary hover:underline">
+                  Forgot password?
+                </Link>
               )}
             </div>
 

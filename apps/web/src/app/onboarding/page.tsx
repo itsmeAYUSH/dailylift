@@ -7,29 +7,38 @@ import { Input } from '@dailylift/ui/components/input';
 import { Label } from '@dailylift/ui/components/label';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
-import { 
-  Activity, 
-  ArrowRight, 
-  ArrowLeft, 
-  User, 
-  Target, 
+import {
   Dumbbell,
+  ArrowRight,
+  ArrowLeft,
+  User,
+  Target,
   Check,
-  Loader2
+  Loader2,
+  Flame,
+  Activity,
+  Zap,
+  PersonStanding,
+  Home,
+  Trees,
+  Shuffle,
+  Salad,
+  Beef,
+  Leaf,
 } from 'lucide-react';
 
 const steps = [
-  { id: 1, title: 'Personal Info', icon: User },
-  { id: 2, title: 'Fitness Goals', icon: Target },
+  { id: 1, title: 'Personal', icon: User },
+  { id: 2, title: 'Goals', icon: Target },
   { id: 3, title: 'Preferences', icon: Dumbbell },
 ];
 
 const fitnessGoals = [
-  { value: 'weight_loss', label: 'Weight Loss', emoji: '🔥', description: 'Burn fat and get lean' },
-  { value: 'muscle_gain', label: 'Muscle Gain', emoji: '💪', description: 'Build strength and size' },
-  { value: 'endurance', label: 'Endurance', emoji: '🏃', description: 'Improve stamina and cardio' },
-  { value: 'flexibility', label: 'Flexibility', emoji: '🧘', description: 'Enhance mobility and balance' },
-  { value: 'general_fitness', label: 'General Fitness', emoji: '⚡', description: 'Overall health improvement' },
+  { value: 'weight_loss', label: 'Weight loss', icon: Flame, description: 'Burn fat and get lean' },
+  { value: 'muscle_gain', label: 'Muscle gain', icon: Dumbbell, description: 'Build strength and size' },
+  { value: 'endurance', label: 'Endurance', icon: Activity, description: 'Improve stamina and cardio' },
+  { value: 'flexibility', label: 'Flexibility', icon: PersonStanding, description: 'Enhance mobility and balance' },
+  { value: 'general_fitness', label: 'General fitness', icon: Zap, description: 'Overall health improvement' },
 ];
 
 const fitnessLevels = [
@@ -39,10 +48,16 @@ const fitnessLevels = [
 ];
 
 const workoutPreferences = [
-  { value: 'home', label: 'Home', emoji: '🏠', description: 'Minimal equipment workouts' },
-  { value: 'gym', label: 'Gym', emoji: '🏋️', description: 'Full equipment access' },
-  { value: 'outdoor', label: 'Outdoor', emoji: '🌳', description: 'Parks and open spaces' },
-  { value: 'mixed', label: 'Mixed', emoji: '🔄', description: 'Combination of all' },
+  { value: 'home', label: 'Home', icon: Home, description: 'Minimal equipment' },
+  { value: 'gym', label: 'Gym', icon: Dumbbell, description: 'Full equipment access' },
+  { value: 'outdoor', label: 'Outdoor', icon: Trees, description: 'Parks and open spaces' },
+  { value: 'mixed', label: 'Mixed', icon: Shuffle, description: 'A combination of all' },
+];
+
+const dietaryOptions = [
+  { value: 'vegetarian', label: 'Vegetarian', icon: Salad },
+  { value: 'non_vegetarian', label: 'Non-veg', icon: Beef },
+  { value: 'vegan', label: 'Vegan', icon: Leaf },
 ];
 
 export default function Onboarding() {
@@ -50,8 +65,7 @@ export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { updateProfile } = useAuthStore();
-  
-  // Form state
+
   const [formData, setFormData] = useState({
     full_name: '',
     age: '',
@@ -71,27 +85,22 @@ export default function Onboarding() {
 
   const canProceed = () => {
     if (currentStep === 1) {
-      return formData.full_name && formData.age && formData.gender && 
+      return formData.full_name && formData.age && formData.gender &&
              formData.height_cm && formData.weight_kg;
     }
     return true;
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
-      setCurrentStep(prev => prev + 1);
-    }
+    if (currentStep < 3) setCurrentStep(prev => prev + 1);
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
+    if (currentStep > 1) setCurrentStep(prev => prev - 1);
   };
 
   const handleComplete = async () => {
     setIsLoading(true);
-    
     try {
       await updateProfile({
         ...formData,
@@ -100,76 +109,67 @@ export default function Onboarding() {
         weight_kg: parseFloat(formData.weight_kg),
         onboarding_completed: true,
       });
-      
-      toast.success('Profile setup complete!');
+      toast.success('Profile setup complete');
       router.push('/dashboard');
     } catch (error) {
-      toast.error('Failed to save profile. Please try again.');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to save profile. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen gradient-dark flex items-center justify-center p-4">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-2xl relative z-10">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-            <Activity className="w-6 h-6 text-primary-foreground" />
+        <div className="flex items-center justify-center gap-2.5 mb-8">
+          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+            <Dumbbell className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-2xl">
-            Fit<span className="text-gradient">AI</span>
-          </span>
+          <span className="font-display font-bold text-xl tracking-tight">DailyLift</span>
         </div>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-center gap-4 mb-8">
+        <div className="flex items-center justify-center gap-3 mb-8">
           {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center gap-4">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                currentStep === step.id 
-                  ? 'gradient-primary text-primary-foreground' 
+            <div key={step.id} className="flex items-center gap-3">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                currentStep === step.id
+                  ? 'bg-primary text-primary-foreground'
                   : currentStep > step.id
-                    ? 'bg-primary/20 text-primary'
-                    : 'bg-card text-muted-foreground'
+                    ? 'bg-accent text-accent-foreground'
+                    : 'bg-secondary text-muted-foreground'
               }`}>
-                {currentStep > step.id ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <step.icon className="w-4 h-4" />
-                )}
-                <span className="text-sm font-medium hidden sm:inline">{step.title}</span>
+                {currentStep > step.id ? <Check className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
+                <span className="font-medium hidden sm:inline">{step.title}</span>
               </div>
               {index < steps.length - 1 && (
-                <div className={`w-8 h-0.5 ${currentStep > step.id ? 'bg-primary' : 'bg-border'}`} />
+                <div className={`w-6 h-px ${currentStep > step.id ? 'bg-primary' : 'bg-border'}`} />
               )}
             </div>
           ))}
         </div>
 
         {/* Card */}
-        <div className="glass rounded-2xl p-8 animate-scale-in">
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm animate-fade-in">
           {/* Step 1: Personal Info */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h1 className="font-display text-2xl font-bold mb-2">Tell us about yourself</h1>
-                <p className="text-muted-foreground">This helps us personalize your experience</p>
+              <div className="mb-6">
+                <h1 className="font-display text-xl font-bold mb-1">Tell us about yourself</h1>
+                <p className="text-sm text-muted-foreground">This helps us personalize your plans.</p>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2 space-y-2">
-                  <Label htmlFor="full_name">Full Name</Label>
+                  <Label htmlFor="full_name">Full name</Label>
                   <Input
                     id="full_name"
-                    placeholder="John Doe"
+                    placeholder="Jane Doe"
                     value={formData.full_name}
                     onChange={(e) => updateField('full_name', e.target.value)}
                   />
@@ -232,27 +232,29 @@ export default function Onboarding() {
           {/* Step 2: Fitness Goals */}
           {currentStep === 2 && (
             <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h1 className="font-display text-2xl font-bold mb-2">What's your goal?</h1>
-                <p className="text-muted-foreground">We'll customize your plans based on this</p>
+              <div className="mb-2">
+                <h1 className="font-display text-xl font-bold mb-1">What's your goal?</h1>
+                <p className="text-sm text-muted-foreground">We'll tailor your plans around it.</p>
               </div>
 
-              <div className="space-y-4">
-                <Label>Primary Goal</Label>
+              <div className="space-y-3">
+                <Label>Primary goal</Label>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {fitnessGoals.map((goal) => (
                     <button
                       key={goal.value}
                       type="button"
                       onClick={() => updateField('fitness_goal', goal.value)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      className={`p-4 rounded-xl border text-left transition-colors ${
                         formData.fitness_goal === goal.value
-                          ? 'border-primary bg-primary/10'
+                          ? 'border-primary bg-accent'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{goal.emoji}</span>
+                        <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                          <goal.icon className="w-4 h-4 text-primary" />
+                        </div>
                         <div>
                           <div className="font-medium">{goal.label}</div>
                           <div className="text-sm text-muted-foreground">{goal.description}</div>
@@ -263,17 +265,17 @@ export default function Onboarding() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label>Fitness Level</Label>
+              <div className="space-y-3">
+                <Label>Fitness level</Label>
                 <div className="grid gap-3">
                   {fitnessLevels.map((level) => (
                     <button
                       key={level.value}
                       type="button"
                       onClick={() => updateField('fitness_level', level.value)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      className={`p-4 rounded-xl border text-left transition-colors ${
                         formData.fitness_level === level.value
-                          ? 'border-primary bg-primary/10'
+                          ? 'border-primary bg-accent'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
@@ -289,26 +291,28 @@ export default function Onboarding() {
           {/* Step 3: Preferences */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h1 className="font-display text-2xl font-bold mb-2">Your Preferences</h1>
-                <p className="text-muted-foreground">Help us create the perfect plan for you</p>
+              <div className="mb-2">
+                <h1 className="font-display text-xl font-bold mb-1">Your preferences</h1>
+                <p className="text-sm text-muted-foreground">A few last details to finish setup.</p>
               </div>
 
-              <div className="space-y-4">
-                <Label>Workout Location</Label>
+              <div className="space-y-3">
+                <Label>Workout location</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {workoutPreferences.map((pref) => (
                     <button
                       key={pref.value}
                       type="button"
                       onClick={() => updateField('workout_preference', pref.value)}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      className={`p-4 rounded-xl border text-center transition-colors ${
                         formData.workout_preference === pref.value
-                          ? 'border-primary bg-primary/10'
+                          ? 'border-primary bg-accent'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
-                      <div className="text-2xl mb-2">{pref.emoji}</div>
+                      <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center mx-auto mb-2">
+                        <pref.icon className="w-4 h-4 text-primary" />
+                      </div>
                       <div className="font-medium">{pref.label}</div>
                       <div className="text-xs text-muted-foreground">{pref.description}</div>
                     </button>
@@ -316,8 +320,8 @@ export default function Onboarding() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label>Available Time Per Day</Label>
+              <div className="space-y-3">
+                <Label>Available time per day</Label>
                 <div className="flex gap-2">
                   {[15, 30, 45, 60, 90].map((time) => (
                     <Button
@@ -334,22 +338,19 @@ export default function Onboarding() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label>Dietary Preference</Label>
+              <div className="space-y-3">
+                <Label>Dietary preference</Label>
                 <div className="flex gap-2">
-                  {[
-                    { value: 'vegetarian', label: '🥗 Vegetarian' },
-                    { value: 'non_vegetarian', label: '🍖 Non-Veg' },
-                    { value: 'vegan', label: '🌱 Vegan' },
-                  ].map((diet) => (
+                  {dietaryOptions.map((diet) => (
                     <Button
                       key={diet.value}
                       type="button"
                       variant={formData.dietary_preference === diet.value ? 'default' : 'outline'}
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 gap-2"
                       onClick={() => updateField('dietary_preference', diet.value)}
                     >
+                      <diet.icon className="w-4 h-4" />
                       {diet.label}
                     </Button>
                   ))}
@@ -366,33 +367,23 @@ export default function Onboarding() {
               onClick={handleBack}
               disabled={currentStep === 1}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
 
             {currentStep < 3 ? (
-              <Button
-                type="button"
-                variant="gradient"
-                onClick={handleNext}
-                disabled={!canProceed()}
-              >
+              <Button type="button" onClick={handleNext} disabled={!canProceed()}>
                 Next
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-4 h-4" />
               </Button>
             ) : (
-              <Button
-                type="button"
-                variant="gradient"
-                onClick={handleComplete}
-                disabled={isLoading}
-              >
+              <Button type="button" onClick={handleComplete} disabled={isLoading}>
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    Complete Setup
-                    <Check className="w-4 h-4 ml-2" />
+                    Complete setup
+                    <Check className="w-4 h-4" />
                   </>
                 )}
               </Button>

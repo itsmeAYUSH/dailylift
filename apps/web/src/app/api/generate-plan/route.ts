@@ -1,22 +1,33 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { createClient } from "@/supabase/server";
+import { checkRateLimit } from "@/lib/ai/rate-limit";
+import {
+  workoutPlanSchema,
+  mealPlanSchema,
+  planTypeSchema,
+  type PlanType,
+} from "@/lib/ai/schemas";
+import { dailyCalorieTargetFromProfile } from "@/lib/fitness/calculations";
 
 // Long-form generation — keep this on the Node runtime, not edge.
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+/** Profile shape read server-side from the DB — the client never supplies it. */
 interface Profile {
-  fitness_level?: string;
-  fitness_goal?: string;
-  workout_preference?: string;
-  available_time_minutes?: number;
-  age?: number;
-  weight_kg?: number;
-  dietary_preference?: string;
-  daily_calories?: number;
+  fitness_level?: string | null;
+  fitness_goal?: string | null;
+  workout_preference?: string | null;
+  available_time_minutes?: number | null;
+  age?: number | null;
+  weight_kg?: number | null;
+  height_cm?: number | null;
+  gender?: string | null;
+  dietary_preference?: string | null;
 }
 
-function buildPrompts(type: string, profile: Profile) {
+function buildPrompts(type: PlanType, profile: Profile, dailyCalories: number) {
   if (type === "workout") {
     return {
       system:
@@ -56,12 +67,10 @@ Return a JSON object with this exact structure:
     };
   }
 
-  if (type === "meal") {
-    const dailyCalories = profile.daily_calories || 2000;
-    return {
-      system:
-        "You are an expert nutritionist. Generate a detailed, personalized meal plan based on the user's profile and dietary preferences. Include exact portions, calories, and macros for each meal. Respond with ONLY a JSON object, no prose and no markdown fences.",
-      user: `Create a full day meal plan for someone with:
+  return {
+    system:
+      "You are an expert nutritionist. Generate a detailed, personalized meal plan based on the user's profile and dietary preferences. Include exact portions, calories, and macros for each meal. Respond with ONLY a JSON object, no prose and no markdown fences.",
+    user: `Create a full day meal plan for someone with:
 - Goal: ${profile.fitness_goal?.replace("_", " ")}
 - Dietary Preference: ${profile.dietary_preference || "non_vegetarian"}
 - Daily Calorie Target: ${dailyCalories} calories
@@ -91,14 +100,11 @@ Return a JSON object with this exact structure:
   "hydration": "daily water intake recommendation",
   "tips": ["nutrition tip 1", "tip 2", "tip 3"]
 }`,
-    };
-  }
-
-  return null;
+  };
 }
 
 /** Pull a JSON object out of the model's text, tolerating stray prose or fences. */
-function parsePlan(content: string) {
+function extractJson(content: string): unknown {
   try {
     return JSON.parse(content);
   } catch {
@@ -112,24 +118,67 @@ function parsePlan(content: string) {
 
 export async function POST(req: Request) {
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
+    // 1. Authenticate — never trust a client-supplied user id or profile.
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Rate limit expensive generation per user.
+    const limit = checkRateLimit(user.id);
+    if (!limit.allowed) {
       return NextResponse.json(
-        { error: "ANTHROPIC_API_KEY is not configured" },
-        { status: 500 },
+        { error: "Too many requests. Please wait a moment and try again." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+        },
       );
     }
 
-    const { type, profile } = (await req.json()) as {
-      type: string;
-      profile: Profile;
-    };
+    // 3. Validate the request body (only the plan type comes from the client).
+    const body = await req.json().catch(() => null);
+    const parsedType = planTypeSchema.safeParse(body?.type);
+    if (!parsedType.success) {
+      return NextResponse.json(
+        { error: "Invalid plan type" },
+        { status: 400 },
+      );
+    }
+    const type = parsedType.data;
 
-    const prompts = buildPrompts(type, profile);
-    if (!prompts) {
-      return NextResponse.json({ error: "Invalid plan type" }, { status: 400 });
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "AI generation is not configured on the server." },
+        { status: 503 },
+      );
     }
 
+    // 4. Load the profile from the DB for the authenticated user.
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select(
+        "fitness_level, fitness_goal, workout_preference, available_time_minutes, age, weight_kg, height_cm, gender, dietary_preference",
+      )
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { error: "Complete your profile before generating a plan." },
+        { status: 400 },
+      );
+    }
+
+    const dailyCalories =
+      dailyCalorieTargetFromProfile(profile) ?? 2000;
+    const prompts = buildPrompts(type, profile, dailyCalories);
+
+    // 5. Call the model.
     const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: "claude-opus-5",
@@ -143,8 +192,19 @@ export async function POST(req: Request) {
       .map((block) => (block as { text: string }).text)
       .join("");
 
-    const plan = parsePlan(text);
-    return NextResponse.json({ plan });
+    // 6. Validate the AI output before returning it.
+    const raw = extractJson(text);
+    const schema = type === "workout" ? workoutPlanSchema : mealPlanSchema;
+    const result = schema.safeParse(raw);
+    if (!result.success) {
+      console.error("AI response failed validation:", result.error.flatten());
+      return NextResponse.json(
+        { error: "The AI returned an unexpected format. Please try again." },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({ plan: result.data });
   } catch (error) {
     console.error("Error in generate-plan route:", error);
     const errorMessage =
