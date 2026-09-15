@@ -1,0 +1,18 @@
+{
+  "name": "@dailylift/env",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./web": "./src/web.ts"
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.13.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@dailylift/config": "*",
+    "@types/node": "^22.16.5",
+    "typescript": "^5.8.3"
+  }
+}
