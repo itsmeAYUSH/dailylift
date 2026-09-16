@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@dailylift/ui/components/button";
 import { Input } from "@dailylift/ui/components/input";
 import { Label } from "@dailylift/ui/components/label";
+import { AuthSkeleton } from "@/components/skeletons";
 import { supabase } from "@/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
@@ -39,12 +40,16 @@ export default function ResetPasswordPage() {
     router.replace("/auth");
   }
 
+  if (!ready) {
+    return <AuthSkeleton />;
+  }
+
   return (
     <main className="min-h-screen bg-background grid place-items-center p-4">
       <section className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-sm">
         <h1 className="font-display text-2xl font-bold">Choose a new password</h1>
-        <p className="text-muted-foreground mt-2">{ready ? "Enter a new password for your account." : "Open this page using the reset link from your email."}</p>
-        {ready && <form className="mt-6 space-y-4" onSubmit={submit}>
+        <p className="text-muted-foreground mt-2">Enter a new password for your account.</p>
+        <form className="mt-6 space-y-4" onSubmit={submit}>
           <div className="space-y-2">
             <Label htmlFor="password">New password</Label>
             <div className="relative">
@@ -64,7 +69,7 @@ export default function ResetPasswordPage() {
             </div>
           </div>
           <Button className="w-full" disabled={isLoading}>{isLoading ? "Saving…" : "Update password"}</Button>
-        </form>}
+        </form>
       </section>
     </main>
   );

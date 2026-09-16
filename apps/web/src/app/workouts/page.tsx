@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AuthGate } from "@/components/AuthGate";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
+import { WorkoutsSkeleton } from "@/components/skeletons";
 import { useActivePlan, useActiveWorkout, useWorkoutHistory, useDashboard } from "@/hooks/queries";
 import { startWorkout } from "@/lib/db/workouts";
 import type { PlanDayWithExercises } from "@/lib/db/types";
@@ -25,7 +26,7 @@ import {
 
 export default function WorkoutsHub() {
   const { data: activePlan, isLoading: planLoading } = useActivePlan();
-  const { data: active } = useActiveWorkout();
+  const { data: active, isLoading: activeLoading } = useActiveWorkout();
   const { data: history } = useWorkoutHistory();
   const { data: dashboard } = useDashboard();
   const router = useRouter();
@@ -68,8 +69,16 @@ export default function WorkoutsHub() {
   const days = activePlan?.workout_plan_days ?? [];
   const suggestedIndex = days.length ? (dashboard?.totalCompletedWorkouts ?? 0) % days.length : 0;
 
+  if (planLoading && !activePlan) {
+    return (
+      <AuthGate requireOnboarding fallback={<WorkoutsSkeleton />}>
+        <WorkoutsSkeleton />
+      </AuthGate>
+    );
+  }
+
   return (
-    <AuthGate requireOnboarding>
+    <AuthGate requireOnboarding fallback={<WorkoutsSkeleton />}>
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <PageHeader
           title="Train"
@@ -117,8 +126,12 @@ export default function WorkoutsHub() {
                     <ClipboardList className="size-4" /> Build a plan
                   </Button>
                 </Link>
-                <Button variant="outline" onClick={quickStart} disabled={starting === "quick"}>
-                  <Zap className="size-4" /> Quick workout
+                <Button
+                  variant="outline"
+                  onClick={() => (active ? router.push(`/workouts/${active.id}`) : quickStart())}
+                  disabled={activeLoading || starting === "quick"}
+                >
+                  <Zap className="size-4" /> {active ? "Resume workout" : "Quick workout"}
                 </Button>
               </div>
             }
@@ -150,19 +163,24 @@ export default function WorkoutsHub() {
                       </p>
                     </div>
                     <Button
-                      onClick={() => startFromDay(day)}
-                      disabled={starting === day.id}
+                      onClick={() => (active ? router.push(`/workouts/${active.id}`) : startFromDay(day))}
+                      disabled={activeLoading || starting === day.id}
                       variant={i === suggestedIndex ? "default" : "outline"}
                     >
-                      <Play className="size-4" /> {starting === day.id ? "…" : "Start"}
+                      <Play className="size-4" /> {active ? "Resume" : starting === day.id ? "…" : "Start"}
                     </Button>
                   </CardHeader>
                 </Card>
               ))}
             </div>
 
-            <Button variant="ghost" className="mt-4 w-full" onClick={quickStart} disabled={starting === "quick"}>
-              <Zap className="size-4" /> Or start an empty workout
+            <Button
+              variant="ghost"
+              className="mt-4 w-full"
+              onClick={() => (active ? router.push(`/workouts/${active.id}`) : quickStart())}
+              disabled={activeLoading || starting === "quick"}
+            >
+              <Zap className="size-4" /> {active ? "Resume workout" : "Or start an empty workout"}
             </Button>
           </>
         )}

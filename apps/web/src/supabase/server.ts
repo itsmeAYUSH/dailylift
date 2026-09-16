@@ -21,6 +21,11 @@ export async function createClient() {
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: {
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -28,7 +33,12 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, {
+                ...options,
+                path: "/",
+                sameSite: "lax",
+                secure: process.env.NODE_ENV === "production",
+              }),
             );
           } catch {
             // `setAll` was called from a Server Component. This can be ignored

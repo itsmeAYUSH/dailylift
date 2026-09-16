@@ -4,18 +4,21 @@ import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Layout } from "@/components/layout/Layout";
 import { useAuthStore } from "@/stores/authStore";
+import { DashboardSkeleton } from "@/components/skeletons";
 
 /**
- * Wraps a protected page: shows a loading state until auth is initialized,
+ * Wraps a protected page: shows a skeleton loading state until auth is initialized,
  * redirects to /auth when signed out, and (optionally) nudges to onboarding.
  * Renders children inside the sidebar Layout once the user is known.
  */
 export function AuthGate({
   children,
   requireOnboarding = false,
+  fallback,
 }: {
   children: ReactNode;
   requireOnboarding?: boolean;
+  fallback?: ReactNode;
 }) {
   const { user, profile, isLoading, isInitialized } = useAuthStore();
   const router = useRouter();
@@ -25,16 +28,7 @@ export function AuthGate({
   }, [user, isLoading, isInitialized, router]);
 
   if (isLoading || !isInitialized || !user) {
-    return (
-      <Layout>
-        <div className="flex min-h-[70vh] items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          </div>
-        </div>
-      </Layout>
-    );
+    return <Layout>{fallback ?? <DashboardSkeleton />}</Layout>;
   }
 
   if (requireOnboarding && profile && !profile.onboarding_completed) {
@@ -47,7 +41,7 @@ export function AuthGate({
           </p>
           <button
             onClick={() => router.push("/onboarding")}
-            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
           >
             Complete onboarding
           </button>

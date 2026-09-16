@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Layout } from '@/components/layout/Layout';
 import { PageHeader } from '@/components/PageHeader';
+import { MealsSkeleton } from '@/components/skeletons';
 import { Button } from '@dailylift/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@dailylift/ui/components/card';
 import { Badge } from '@dailylift/ui/components/badge';
 import { Progress } from '@dailylift/ui/components/progress';
 import { useAuthStore } from '@/stores/authStore';
 import { dailyCalorieTargetFromProfile } from '@/lib/fitness/calculations';
+import { saveMealPlan, fetchLatestMealPlan } from '@/lib/db/meals';
 import { toast } from 'sonner';
 import {
   Clock,
@@ -54,9 +56,27 @@ interface MealPlan {
   tips: string[];
 }
 
-export default function Meals() {
+export default function MealsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Layout>
+          <MealsSkeleton />
+        </Layout>
+      }
+    >
+      <Meals />
+    </Suspense>
+  );
+}
+
+function Meals() {
   const { user, profile, isLoading, isInitialized } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const urlMeal = searchParams.get('meal');
+
   const [generating, setGenerating] = useState(false);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [completedMeals, setCompletedMeals] = useState<Set<number>>(new Set());
@@ -67,6 +87,45 @@ export default function Meals() {
       router.push('/auth');
     }
   }, [user, isLoading, isInitialized, router]);
+
+  // Restore the last saved plan so a refresh doesn't lose it.
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    fetchLatestMealPlan()
+      .then((plan) => {
+        if (alive && plan) {
+          setMealPlan(plan);
+          if (urlMeal) {
+            const idx = Number(urlMeal);
+            if (!Number.isNaN(idx) && idx >= 0 && idx < plan.meals.length) {
+              setExpandedMeal(idx);
+            } else {
+              const matchedIdx = plan.meals.findIndex(
+                (m) => m.type.toLowerCase() === urlMeal.toLowerCase(),
+              );
+              if (matchedIdx !== -1) setExpandedMeal(matchedIdx);
+            }
+          }
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user, urlMeal]);
+
+  const handleExpandMeal = (index: number | null) => {
+    setExpandedMeal(index);
+    const params = new URLSearchParams(searchParams.toString());
+    if (index === null || !mealPlan) {
+      params.delete('meal');
+    } else {
+      params.set('meal', mealPlan.meals[index]?.type.toLowerCase() ?? String(index));
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   // Shared with the server route so the displayed target matches what the AI
   // is asked to hit. Falls back to 2000 when biometrics are missing.
@@ -88,6 +147,10 @@ export default function Meals() {
 
       setMealPlan(data.plan);
       setCompletedMeals(new Set());
+      // Persist so it survives refresh; upsert replaces today's plan only.
+      saveMealPlan(data.plan).catch(() =>
+        toast.error('Plan generated but could not be saved.'),
+      );
       toast.success('Meal plan generated!');
     } catch (error) {
       console.error('Error generating meal plan:', error);
@@ -126,14 +189,7 @@ export default function Meals() {
   if (isLoading || !isInitialized) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="w-8 h-8 rounded-full border-2 border-muted border-t-primary animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading…</p>
-            </div>
-          </div>
-        </div>
+        <MealsSkeleton />
       </Layout>
     );
   }
@@ -258,7 +314,7 @@ export default function Meals() {
                 >
                   <div 
                     className="p-4 cursor-pointer"
-                    onClick={() => setExpandedMeal(expandedMeal === index ? null : index)}
+                    onClick={() => handleExpandMeal(expandedMeal === index ? null : index)}
                   >
                     <div className="flex items-center gap-4">
                       <button

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Button } from '@dailylift/ui/components/button';
 import { Input } from '@dailylift/ui/components/input';
 import { Label } from '@dailylift/ui/components/label';
+import { OnboardingSkeleton } from '@/components/skeletons';
 import { useAuthStore } from '@/stores/authStore';
 import { SPLITS, recommendSplit, type TrainingSplit } from '@/lib/fitness/split';
 import { toast } from 'sonner';
@@ -70,13 +71,45 @@ interface Suggestion {
   aiNote: string | null;
 }
 
-export default function Onboarding() {
-  const [currentStep, setCurrentStep] = useState(1);
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingSkeleton />}>
+      <Onboarding />
+    </Suspense>
+  );
+}
+
+function Onboarding() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const urlStep = parseInt(searchParams.get('step') ?? '1', 10);
+  const initialStep = !isNaN(urlStep) && urlStep >= 1 && urlStep <= 4 ? urlStep : 1;
+
+  const [currentStep, setCurrentStep] = useState(initialStep);
   const [isLoading, setIsLoading] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
-  const router = useRouter();
   const { updateProfile } = useAuthStore();
+
+  useEffect(() => {
+    if (!isNaN(urlStep) && urlStep >= 1 && urlStep <= 4) {
+      setCurrentStep(urlStep);
+    }
+  }, [urlStep]);
+
+  const updateStepInUrl = (step: number) => {
+    setCurrentStep(step);
+    const params = new URLSearchParams(searchParams.toString());
+    if (step === 1) {
+      params.delete('step');
+    } else {
+      params.set('step', String(step));
+    }
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  };
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -145,8 +178,13 @@ export default function Onboarding() {
     }
   };
 
-  const handleNext = () => currentStep < 4 && setCurrentStep((s) => s + 1);
-  const handleBack = () => currentStep > 1 && setCurrentStep((s) => s - 1);
+  const handleNext = () => {
+    if (currentStep < 4) updateStepInUrl(currentStep + 1);
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) updateStepInUrl(currentStep - 1);
+  };
 
   const handleComplete = async () => {
     setIsLoading(true);
@@ -201,18 +239,25 @@ export default function Onboarding() {
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center gap-2">
-              <div
+              <button
+                type="button"
+                onClick={() => {
+                  // Allow jumping to step if previous completed or already ahead
+                  if (step.id <= currentStep || canProceed()) {
+                    updateStepInUrl(step.id);
+                  }
+                }}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
                   currentStep === step.id
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
                     : currentStep > step.id
-                      ? 'bg-accent text-accent-foreground'
+                      ? 'bg-accent text-accent-foreground cursor-pointer hover:bg-accent/80'
                       : 'bg-secondary text-muted-foreground'
                 }`}
               >
                 {currentStep > step.id ? <Check className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
                 <span className="font-medium hidden sm:inline">{step.title}</span>
-              </div>
+              </button>
               {index < steps.length - 1 && (
                 <div className={`w-5 h-px ${currentStep > step.id ? 'bg-primary' : 'bg-border'}`} />
               )}

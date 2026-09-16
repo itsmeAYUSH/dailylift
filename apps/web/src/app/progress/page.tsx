@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import {
   ResponsiveContainer,
@@ -17,6 +18,7 @@ import { startOfWeek, format } from "date-fns";
 import { AuthGate } from "@/components/AuthGate";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
+import { ProgressSkeleton } from "@/components/skeletons";
 import {
   useBodyWeightLogs,
   useWorkoutHistory,
@@ -44,11 +46,70 @@ const RANGES = [
 ] as const;
 
 export default function ProgressPage() {
-  const { data: weights } = useBodyWeightLogs();
-  const { data: history } = useWorkoutHistory();
-  const { data: prs } = usePersonalRecords();
-  const [range, setRange] = useState<(typeof RANGES)[number]>(RANGES[1]);
-  const [weightOpen, setWeightOpen] = useState(false);
+  return (
+    <Suspense
+      fallback={
+        <AuthGate fallback={<ProgressSkeleton />}>
+          <ProgressSkeleton />
+        </AuthGate>
+      }
+    >
+      <Progress />
+    </Suspense>
+  );
+}
+
+function Progress() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const urlRange = searchParams.get("range");
+  const urlDialog = searchParams.get("dialog");
+
+  const initialRange = RANGES.find((r) => r.label.toLowerCase() === urlRange?.toLowerCase()) ?? RANGES[1];
+
+  const { data: weights, isLoading: weightsLoading } = useBodyWeightLogs();
+  const { data: history, isLoading: historyLoading } = useWorkoutHistory();
+  const { data: prs, isLoading: prsLoading } = usePersonalRecords();
+  const [range, setRange] = useState<(typeof RANGES)[number]>(initialRange);
+  const [weightOpen, setWeightOpen] = useState(urlDialog === "weight" || urlDialog === "log-weight");
+
+  // Sync state from URL
+  useEffect(() => {
+    if (urlRange) {
+      const match = RANGES.find((r) => r.label.toLowerCase() === urlRange.toLowerCase());
+      if (match) setRange(match);
+    }
+  }, [urlRange]);
+
+  useEffect(() => {
+    setWeightOpen(urlDialog === "weight" || urlDialog === "log-weight");
+  }, [urlDialog]);
+
+  const updateQuery = (updates: { range?: string; dialog?: string | null }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (updates.range !== undefined) {
+      if (updates.range === "90D" || !updates.range) params.delete("range");
+      else params.set("range", updates.range);
+    }
+    if (updates.dialog !== undefined) {
+      if (!updates.dialog) params.delete("dialog");
+      else params.set("dialog", updates.dialog);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleRangeChange = (r: (typeof RANGES)[number]) => {
+    setRange(r);
+    updateQuery({ range: r.label });
+  };
+
+  const handleWeightOpenChange = (open: boolean) => {
+    setWeightOpen(open);
+    updateQuery({ dialog: open ? "weight" : null });
+  };
 
   // Capture "now" once on mount so the cutoff stays stable across renders.
   const [now] = useState(() => Date.now());
@@ -80,15 +141,24 @@ export default function ProgressPage() {
   const workoutsInRange = (history ?? []).filter((w) => new Date(w.started_at).getTime() >= cutoff).length;
   const totalVolume = volumeSeries.reduce((s, v) => s + v.volume, 0);
   const hasData = weightSeries.length > 0 || volumeSeries.length > 0;
+  const initialLoading = (weightsLoading || historyLoading) && !weights && !history;
+
+  if (initialLoading) {
+    return (
+      <AuthGate fallback={<ProgressSkeleton />}>
+        <ProgressSkeleton />
+      </AuthGate>
+    );
+  }
 
   return (
-    <AuthGate>
+    <AuthGate fallback={<ProgressSkeleton />}>
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <PageHeader
           title="Progress"
           subtitle="Your training and body-weight trends over time."
           actions={
-            <Button variant="outline" onClick={() => setWeightOpen(true)}>
+            <Button variant="outline" onClick={() => handleWeightOpenChange(true)}>
               <Plus className="size-4" /> Log weight
             </Button>
           }
@@ -98,7 +168,7 @@ export default function ProgressPage() {
           {RANGES.map((r) => (
             <button
               key={r.label}
-              onClick={() => setRange(r)}
+              onClick={() => handleRangeChange(r)}
               className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
                 range.label === r.label
                   ? "border-primary bg-primary text-primary-foreground"
@@ -207,7 +277,7 @@ export default function ProgressPage() {
         )}
       </div>
 
-      <LogWeightDialog open={weightOpen} onOpenChange={setWeightOpen} />
+      <LogWeightDialog open={weightOpen} onOpenChange={handleWeightOpenChange} />
     </AuthGate>
   );
 }

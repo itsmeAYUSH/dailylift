@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AuthGate } from "@/components/AuthGate";
-import { useExercises } from "@/hooks/queries";
+import { ExercisePickerDialog } from "@/components/ExercisePickerDialog";
+import { WorkoutLoggerSkeleton } from "@/components/skeletons";
 import {
   fetchWorkout,
   addWorkoutExercise,
@@ -50,7 +51,6 @@ import {
   Flag,
   X,
   Dumbbell,
-  Search,
   TrendingUp,
   Trophy,
 } from "lucide-react";
@@ -142,7 +142,11 @@ export default function WorkoutLoggerPage() {
   };
 
   const onFieldChange = (weId: string, setId: string, field: "weight_kg" | "reps" | "rpe", value: string) => {
-    const num = value === "" ? null : Number(value);
+    let num = value === "" ? null : Number(value);
+    if (num !== null) {
+      if (Number.isNaN(num) || num < 0) return; // reject invalid / negative values
+      if (field === "reps") num = Math.floor(num); // reps are whole numbers
+    }
     patchSetLocal(weId, setId, { [field]: num } as Partial<WorkoutSetRow>);
     const existing = pending.current.get(setId) ?? {};
     pending.current.set(setId, { ...existing, [field]: num });
@@ -245,81 +249,78 @@ export default function WorkoutLoggerPage() {
   };
 
   return (
-    <AuthGate>
-      <div className="container mx-auto max-w-2xl px-4 py-6">
-        {loading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-14 rounded-xl" />
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 rounded-xl" />
-            ))}
-          </div>
-        ) : !workout ? (
-          <p className="text-muted-foreground">Workout not found.</p>
-        ) : workout.status !== "in_progress" && !summary ? (
-          <div className="py-10 text-center">
-            <p className="mb-4 text-muted-foreground">This workout is already {workout.status}.</p>
-            <Button onClick={() => router.push("/workouts/history")}>View history</Button>
-          </div>
-        ) : (
-          <>
-            <LoggerHeader
-              workout={workout}
-              onRename={(name) => {
-                setWorkout((w) => (w ? { ...w, name } : w));
-                updateWorkout(workout.id, { name }).catch(() => {});
-              }}
-              onFinish={handleFinish}
-              onCancel={() => setConfirmCancel(true)}
-              finishing={finishing}
-            />
-
-            <div className="mt-5 space-y-4">
-              {workout.workout_exercises.map((we) => (
-                <ExerciseCard
-                  key={we.id}
-                  we={we}
-                  prevSets={prev[we.id] ?? []}
-                  onField={onFieldChange}
-                  onToggle={(set) => toggleComplete(we, set)}
-                  onAddSet={() => handleAddSet(we)}
-                  onDeleteSet={(setId) => handleDeleteSet(we.id, setId)}
-                  onRemove={() => handleRemoveExercise(we.id)}
-                />
-              ))}
+    <AuthGate fallback={<WorkoutLoggerSkeleton />}>
+      {loading ? (
+        <WorkoutLoggerSkeleton />
+      ) : (
+        <div className="container mx-auto max-w-2xl px-4 py-6">
+          {!workout ? (
+            <p className="text-muted-foreground">Workout not found.</p>
+          ) : workout.status !== "in_progress" && !summary ? (
+            <div className="py-10 text-center">
+              <p className="mb-4 text-muted-foreground">This workout is already {workout.status}.</p>
+              <Button onClick={() => router.push("/workouts/history")}>View history</Button>
             </div>
+          ) : (
+            <>
+              <LoggerHeader
+                workout={workout}
+                onRename={(name) => {
+                  setWorkout((w) => (w ? { ...w, name } : w));
+                  updateWorkout(workout.id, { name }).catch(() => {});
+                }}
+                onFinish={handleFinish}
+                onCancel={() => setConfirmCancel(true)}
+                finishing={finishing}
+              />
 
-            <Button variant="outline" className="mt-4 w-full" onClick={() => setAddOpen(true)}>
-              <Plus className="size-4" /> Add exercise
-            </Button>
-          </>
-        )}
+              <div className="mt-5 space-y-4">
+                {workout.workout_exercises.map((we) => (
+                  <ExerciseCard
+                    key={we.id}
+                    we={we}
+                    prevSets={prev[we.id] ?? []}
+                    onField={onFieldChange}
+                    onToggle={(set) => toggleComplete(we, set)}
+                    onAddSet={() => handleAddSet(we)}
+                    onDeleteSet={(setId) => handleDeleteSet(we.id, setId)}
+                    onRemove={() => handleRemoveExercise(we.id)}
+                  />
+                ))}
+              </div>
 
-        <AddExerciseDialog open={addOpen} onOpenChange={setAddOpen} onSelect={handleAddExercise} />
+              <Button variant="outline" className="mt-4 w-full" onClick={() => setAddOpen(true)}>
+                <Plus className="size-4" /> Add exercise
+              </Button>
+            </>
+          )}
 
-        <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Cancel this workout?</AlertDialogTitle>
-              <AlertDialogDescription>
-                It will be discarded and won&apos;t appear in your history.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Keep going</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCancel}>Cancel workout</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          <ExercisePickerDialog open={addOpen} onOpenChange={setAddOpen} onSelect={handleAddExercise} />
 
-        {summary && workout && (
-          <SummaryDialog
-            workout={workout}
-            result={summary}
-            onClose={() => router.push("/workouts/history")}
-          />
-        )}
-      </div>
+          <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Cancel this workout?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  It will be discarded and won&apos;t appear in your history.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep going</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCancel}>Cancel workout</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {summary && workout && (
+            <SummaryDialog
+              workout={workout}
+              result={summary}
+              onClose={() => router.push("/workouts/history")}
+            />
+          )}
+        </div>
+      )}
     </AuthGate>
   );
 }
@@ -450,6 +451,7 @@ function ExerciseCard({
               type="number"
               inputMode="decimal"
               step="2.5"
+              min="0"
               defaultValue={set.weight_kg ?? ""}
               onChange={(e) => onField(we.id, set.id, "weight_kg", e.target.value)}
               placeholder="0"
@@ -458,6 +460,7 @@ function ExerciseCard({
             <Input
               type="number"
               inputMode="numeric"
+              min="0"
               defaultValue={set.reps ?? ""}
               onChange={(e) => onField(we.id, set.id, "reps", e.target.value)}
               placeholder="0"
@@ -489,66 +492,6 @@ function ExerciseCard({
         </Button>
       </CardContent>
     </Card>
-  );
-}
-
-/* ------------------------- add-exercise dialog --------------------------- */
-
-function AddExerciseDialog({
-  open,
-  onOpenChange,
-  onSelect,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  onSelect: (input: { exercise_id: string | null; name: string; muscle_group: string | null }) => void;
-}) {
-  const { data: exercises } = useExercises();
-  const [search, setSearch] = useState("");
-  const filtered = (exercises ?? []).filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Add exercise</DialogTitle>
-        </DialogHeader>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            autoFocus
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search library…"
-            className="pl-9"
-          />
-        </div>
-        <div className="-mx-2 max-h-[50vh] overflow-y-auto px-2">
-          {search && (
-            <button
-              onClick={() => onSelect({ exercise_id: null, name: search, muscle_group: null })}
-              className="mb-2 flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-left text-sm hover:border-primary/50"
-            >
-              <Plus className="size-4" /> Add custom “{search}”
-            </button>
-          )}
-          {filtered.map((e) => (
-            <button
-              key={e.id}
-              onClick={() => onSelect({ exercise_id: e.id, name: e.name, muscle_group: e.primary_muscle })}
-              className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left hover:bg-secondary"
-            >
-              <span className="font-medium">{e.name}</span>
-              <Badge variant="secondary" className="capitalize">
-                {e.primary_muscle}
-              </Badge>
-            </button>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 

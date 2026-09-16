@@ -80,6 +80,12 @@ export async function startWorkout(input: {
   exercises?: NewExerciseInput[];
 }): Promise<FullWorkout> {
   const userId = await requireUserId();
+
+  // One active session per user: if a workout is already in progress, resume it
+  // instead of creating another (matches the Phase 1 unique index).
+  const existing = await fetchActiveWorkout();
+  if (existing) return existing;
+
   const { data: workout, error } = await supabase
     .from("workouts")
     .insert({
@@ -91,7 +97,15 @@ export async function startWorkout(input: {
     })
     .select("id")
     .single();
-  if (error) throw error;
+  if (error) {
+    // Concurrent start tripped the one-active-per-user unique index — refetch
+    // and resume the session that won the race instead of failing.
+    if ((error as { code?: string }).code === "23505") {
+      const active = await fetchActiveWorkout();
+      if (active) return active;
+    }
+    throw error;
+  }
 
   const seeds = input.exercises ?? [];
   for (let i = 0; i < seeds.length; i++) {
@@ -220,6 +234,9 @@ export async function finishWorkout(id: string): Promise<FinishResult> {
   const userId = await requireUserId();
   const full = await fetchWorkout(id);
   if (!full) throw new Error("Workout not found");
+  // Idempotent: never re-stamp duration or re-detect PRs for an already
+  // finished (or cancelled) workout.
+  if (full.status !== "in_progress") return { newPRs: [] };
 
   const duration = Math.max(
     0,

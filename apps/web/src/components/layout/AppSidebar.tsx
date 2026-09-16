@@ -31,7 +31,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail,
   SidebarSeparator,
   useSidebar,
 } from "@dailylift/ui/components/sidebar";
@@ -191,7 +190,6 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

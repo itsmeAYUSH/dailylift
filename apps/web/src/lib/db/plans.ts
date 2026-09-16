@@ -140,3 +140,64 @@ export async function deletePlan(id: string): Promise<void> {
   const { error } = await supabase.from("workout_plans").delete().eq("id", id);
   if (error) throw error;
 }
+
+/* ----------------------- planned-exercise editing ------------------------ */
+// RLS on planned_exercises ("Users manage exercises of own plan days") already
+// scopes every write to the plan owner, so no extra ownership checks needed.
+
+export interface NewPlannedExercise {
+  exercise_id?: string | null;
+  name: string;
+  target_sets?: number | null;
+  target_reps_min?: number | null;
+  target_reps_max?: number | null;
+  rest_seconds?: number | null;
+}
+
+/** Append an exercise to a plan day (order_index = current count). */
+export async function addPlannedExercise(
+  planDayId: string,
+  input: NewPlannedExercise,
+): Promise<void> {
+  const { count } = await supabase
+    .from("planned_exercises")
+    .select("id", { count: "exact", head: true })
+    .eq("plan_day_id", planDayId);
+  const { error } = await supabase.from("planned_exercises").insert({
+    plan_day_id: planDayId,
+    exercise_id: input.exercise_id ?? null,
+    name: input.name,
+    order_index: count ?? 0,
+    target_sets: input.target_sets ?? 3,
+    target_reps_min: input.target_reps_min ?? 8,
+    target_reps_max: input.target_reps_max ?? 12,
+    rest_seconds: input.rest_seconds ?? 75,
+  });
+  if (error) throw error;
+}
+
+/** Swap the exercise on an existing planned row, keeping its order and targets. */
+export async function replacePlannedExercise(
+  id: string,
+  input: { exercise_id: string | null; name: string },
+): Promise<void> {
+  const { error } = await supabase
+    .from("planned_exercises")
+    .update({ exercise_id: input.exercise_id, name: input.name })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function removePlannedExercise(id: string): Promise<void> {
+  const { error } = await supabase.from("planned_exercises").delete().eq("id", id);
+  if (error) throw error;
+}
+
+/** Persist a new order for a day's exercises (order_index = array position). */
+export async function reorderPlannedExercises(orderedIds: string[]): Promise<void> {
+  await Promise.all(
+    orderedIds.map((id, i) =>
+      supabase.from("planned_exercises").update({ order_index: i }).eq("id", id),
+    ),
+  );
+}

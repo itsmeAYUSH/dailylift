@@ -4,12 +4,20 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Layout } from '@/components/layout/Layout';
 import { PageHeader } from '@/components/PageHeader';
+import { CalculatorsSkeleton } from '@/components/skeletons';
 import { Button } from '@dailylift/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@dailylift/ui/components/card';
 import { Input } from '@dailylift/ui/components/input';
 import { Label } from '@dailylift/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@dailylift/ui/components/select';
 import { useAuthStore } from '@/stores/authStore';
+import { toast } from 'sonner';
+import {
+  calculateBMR as bmrFormula,
+  calculateTDEE,
+  calorieTargetForGoal,
+  type ActivityLevel,
+} from '@/lib/fitness/calculations';
 import {
   Scale,
   Flame,
@@ -28,7 +36,13 @@ const CALCULATORS = [
 
 export default function CalculatorsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <Layout>
+          <CalculatorsSkeleton />
+        </Layout>
+      }
+    >
       <Calculators />
     </Suspense>
   );
@@ -137,52 +151,44 @@ function Calculators() {
     }
   };
 
-  const calculateBMR = () => {
+  // Deterministic BMR (Mifflin–St Jeor) from the shared utility, so the
+  // calculator, dashboard, and meal targets all agree on the numbers.
+  const bmrFromInputs = (): number | null => {
     const age = parseFloat(bmrAge);
     const height = parseFloat(bmrHeight);
     const weight = parseFloat(bmrWeight);
-    
-    if (age && height && weight) {
-      // Mifflin-St Jeor Equation
-      let bmr = 10 * weight + 6.25 * height - 5 * age;
-      bmr += bmrGender === 'male' ? 5 : -161;
-      setBmrResult(Math.round(bmr));
+    if (!(age > 0 && height > 0 && weight > 0)) return null;
+    return bmrFormula({ weightKg: weight, heightCm: height, age, sex: bmrGender });
+  };
+
+  const calculateBMR = () => {
+    const bmr = bmrFromInputs();
+    if (bmr == null) {
+      toast.error('Enter a valid age, height, and weight.');
+      return;
     }
+    setBmrResult(bmr);
   };
 
   const calculateCalories = () => {
-    if (!bmrResult) {
-      calculateBMR();
+    // Compute BMR synchronously from the inputs — never rely on prior async
+    // state or a hardcoded default.
+    const bmr = bmrFromInputs();
+    if (bmr == null) {
+      toast.error('Add your age, height, and weight on the BMR tab first.');
+      return;
     }
-    
-    const bmr = bmrResult || 1800;
-    const activityMultipliers: Record<string, number> = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      very_active: 1.9,
-    };
-    
-    const maintain = Math.round(bmr * activityMultipliers[calActivity]);
-    let goal = maintain;
-    let label = 'Maintenance';
-    
-    switch (calGoal) {
-      case 'weight_loss':
-        goal = maintain - 500;
-        label = 'For Weight Loss';
-        break;
-      case 'muscle_gain':
-        goal = maintain + 300;
-        label = 'For Muscle Gain';
-        break;
-      case 'endurance':
-        goal = maintain + 200;
-        label = 'For Endurance';
-        break;
-    }
-    
+    setBmrResult(bmr);
+
+    const maintain = calculateTDEE(bmr, calActivity as ActivityLevel);
+    const goal = calorieTargetForGoal(maintain, calGoal);
+    const label =
+      calGoal === 'weight_loss'
+        ? 'For Weight Loss'
+        : calGoal === 'muscle_gain'
+          ? 'For Muscle Gain'
+          : 'Maintenance';
+
     setCalorieResult({ maintain, goal, label });
   };
 
@@ -240,14 +246,7 @@ function Calculators() {
   if (isLoading || !isInitialized) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="w-8 h-8 rounded-full border-2 border-muted border-t-primary animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading…</p>
-            </div>
-          </div>
-        </div>
+        <CalculatorsSkeleton />
       </Layout>
     );
   }
@@ -629,6 +628,56 @@ function Calculators() {
               </CardContent>
             </Card>
           )}
+
+          {/* Educational Science & FAQ Guide for AEO & SEO */}
+          <div className="mt-12 rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6">
+            <div>
+              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
+                <Heart className="size-5 text-primary" /> Scientific Formulas &amp; Methodology
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Understand the clinical models behind our health calculations.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-border/80 bg-accent/30 p-4 space-y-2">
+                <h3 className="font-semibold text-sm flex items-center gap-1.5">
+                  <Flame className="size-4 text-orange-400" /> Mifflin-St Jeor (BMR)
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Recognized by the Academy of Nutrition and Dietetics as the most reliable clinical equation for non-obese and obese individuals to calculate basal metabolic rate.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border/80 bg-accent/30 p-4 space-y-2">
+                <h3 className="font-semibold text-sm flex items-center gap-1.5">
+                  <Zap className="size-4 text-amber-400" /> TDEE Multipliers
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Applies validated physical activity level (PAL) coefficients (1.2–1.9) on top of BMR to predict real-world daily calorie expenditure.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border/80 bg-accent/30 p-4 space-y-2">
+                <h3 className="font-semibold text-sm flex items-center gap-1.5">
+                  <Heart className="size-4 text-rose-400" /> U.S. Navy Body Fat Method
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Uses natural logarithmic circumference models (waist, neck, hips) against height, estimating body fat within ±3–4% accuracy of dual-energy X-ray absorptiometry (DEXA).
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border/80 bg-accent/30 p-4 space-y-2">
+                <h3 className="font-semibold text-sm flex items-center gap-1.5">
+                  <Droplets className="size-4 text-blue-400" /> Hydration Requirements
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Calculates minimum daily fluid replacement baseline of 35ml/kg plus workout sweat compensation for optimal cellular performance and joint recovery.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

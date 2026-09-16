@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -15,10 +16,12 @@ import {
 import { startOfWeek, format, subWeeks } from "date-fns";
 import { AuthGate } from "@/components/AuthGate";
 import { Reveal } from "@/components/Reveal";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useDashboard,
   useActivePlan,
+  useActiveWorkout,
   useLogBodyWeight,
   useWorkoutHistory,
   useBodyWeightLogs,
@@ -56,13 +59,46 @@ import {
   Target,
 } from "lucide-react";
 
-export default function Dashboard() {
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthGate requireOnboarding fallback={<DashboardSkeleton />}>
+          <DashboardSkeleton />
+        </AuthGate>
+      }
+    >
+      <Dashboard />
+    </Suspense>
+  );
+}
+
+function Dashboard() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const urlDialog = searchParams.get("dialog");
+
   const { profile } = useAuthStore();
-  const { data: dash } = useDashboard();
-  const { data: activePlan } = useActivePlan();
-  const { data: history } = useWorkoutHistory();
-  const { data: weights } = useBodyWeightLogs();
-  const [weightOpen, setWeightOpen] = useState(false);
+  const { data: dash, isLoading: dashLoading } = useDashboard();
+  const { data: activePlan, isLoading: planLoading } = useActivePlan();
+  const { data: activeWorkout, isLoading: activeWorkoutLoading } = useActiveWorkout();
+  const { data: history, isLoading: historyLoading } = useWorkoutHistory();
+  const { data: weights, isLoading: weightsLoading } = useBodyWeightLogs();
+  const [weightOpen, setWeightOpen] = useState(urlDialog === "weight" || urlDialog === "log-weight");
+
+  useEffect(() => {
+    setWeightOpen(urlDialog === "weight" || urlDialog === "log-weight");
+  }, [urlDialog]);
+
+  const handleWeightOpenChange = (open: boolean) => {
+    setWeightOpen(open);
+    const params = new URLSearchParams(searchParams.toString());
+    if (!open) params.delete("dialog");
+    else params.set("dialog", "weight");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const greeting = useMemo(() => getGreeting(profile?.fitness_goal), [profile?.fitness_goal]);
 
@@ -130,8 +166,16 @@ export default function Dashboard() {
 
   const hasVolume = volumeSeries.some((v) => v.volume > 0);
 
+  if ((dashLoading || planLoading) && !dash && !activePlan) {
+    return (
+      <AuthGate requireOnboarding fallback={<DashboardSkeleton />}>
+        <DashboardSkeleton />
+      </AuthGate>
+    );
+  }
+
   return (
-    <AuthGate requireOnboarding>
+    <AuthGate requireOnboarding fallback={<DashboardSkeleton />}>
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <Reveal>
           <div className="mb-6">
@@ -184,11 +228,18 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <Link href="/workouts">
-                  <Button size="lg" variant="secondary" className="shadow-sm">
-                    <Play className="size-4" /> {activePlan ? "Start training" : "Set up plan"}
+                {activeWorkoutLoading ? (
+                  <Button size="lg" variant="secondary" className="shadow-sm" disabled>
+                    <Play className="size-4" /> …
                   </Button>
-                </Link>
+                ) : (
+                  <Link href={activeWorkout ? `/workouts/${activeWorkout.id}` : "/workouts"}>
+                    <Button size="lg" variant="secondary" className="shadow-sm">
+                      <Play className="size-4" />{" "}
+                      {activeWorkout ? "Resume workout" : activePlan ? "Start training" : "Set up plan"}
+                    </Button>
+                  </Link>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -304,7 +355,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="flex h-[150px] flex-col items-center justify-center text-center">
                     <p className="text-sm text-muted-foreground">Log your weight to track trends.</p>
-                    <Button size="sm" variant="outline" className="mt-3" onClick={() => setWeightOpen(true)}>
+                    <Button size="sm" variant="outline" className="mt-3" onClick={() => handleWeightOpenChange(true)}>
                       <Plus className="size-4" /> Log weight
                     </Button>
                   </div>
@@ -328,7 +379,7 @@ export default function Dashboard() {
                   <Metric label="BMR" value={derived ? String(derived.bmr) : "--"} note="kcal rest" />
                   <Metric label="Target" value={derived ? String(derived.target) : "--"} note="kcal/day" />
                 </div>
-                <Button variant="outline" className="w-full" onClick={() => setWeightOpen(true)}>
+                <Button variant="outline" className="w-full" onClick={() => handleWeightOpenChange(true)}>
                   <Plus className="size-4" /> Log body weight
                 </Button>
               </CardContent>
@@ -380,7 +431,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <LogWeightDialog open={weightOpen} onOpenChange={setWeightOpen} current={dash?.latestWeight ?? profile?.weight_kg ?? null} />
+      <LogWeightDialog open={weightOpen} onOpenChange={handleWeightOpenChange} current={dash?.latestWeight ?? profile?.weight_kg ?? null} />
     </AuthGate>
   );
 }

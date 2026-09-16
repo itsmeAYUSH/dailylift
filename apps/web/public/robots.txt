@@ -1,3 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +14,19 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: PerplexityBot
 Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+Sitemap: https://dailylift.app/sitemap.xml

@@ -1,5 +1,6 @@
 import { supabase } from "@/supabase/client";
 import { startOfWeek } from "date-fns";
+import { todayLocalISODate } from "@/lib/date";
 import type { BodyWeightRow, PersonalRecordRow } from "./types";
 
 async function requireUserId(): Promise<string> {
@@ -27,7 +28,7 @@ export async function logBodyWeight(weightKg: number, loggedOn?: string): Promis
     {
       user_id: userId,
       weight_kg: weightKg,
-      logged_on: loggedOn ?? new Date().toISOString().slice(0, 10),
+      logged_on: loggedOn ?? todayLocalISODate(),
     },
     { onConflict: "user_id,logged_on" },
   );
@@ -43,9 +44,21 @@ export async function fetchPersonalRecords(): Promise<PersonalRecordRow[]> {
     .from("personal_records")
     .select("*")
     .order("achieved_on", { ascending: false })
-    .limit(100);
+    .limit(200);
   if (error) throw error;
-  return data ?? [];
+
+  // The table is an append log of every PR improvement. Collapse it to the
+  // single current best per exercise + record type so the UI shows one row per
+  // record instead of every historical bump. Historical rows are preserved.
+  const best = new Map<string, PersonalRecordRow>();
+  for (const pr of data ?? []) {
+    const key = `${pr.exercise_id ?? pr.exercise_name}|${pr.record_type}`;
+    const current = best.get(key);
+    if (!current || Number(pr.value) > Number(current.value)) best.set(key, pr);
+  }
+  return Array.from(best.values()).sort(
+    (a, b) => new Date(b.achieved_on).getTime() - new Date(a.achieved_on).getTime(),
+  );
 }
 
 /* ------------------------------ dashboard -------------------------------- */
@@ -93,14 +106,15 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   }, 0);
 
   // Streak: count back consecutive calendar days with a completed workout.
-  const days = new Set(list.map((w) => new Date(w.started_at).toISOString().slice(0, 10)));
+  // Uses local dates so an evening session isn't bucketed into the wrong day.
+  const days = new Set(list.map((w) => todayLocalISODate(new Date(w.started_at))));
   let streak = 0;
   const cursor = new Date();
   // Allow today to be missing (streak still counts from yesterday).
-  if (!days.has(cursor.toISOString().slice(0, 10))) {
+  if (!days.has(todayLocalISODate(cursor))) {
     cursor.setDate(cursor.getDate() - 1);
   }
-  while (days.has(cursor.toISOString().slice(0, 10))) {
+  while (days.has(todayLocalISODate(cursor))) {
     streak++;
     cursor.setDate(cursor.getDate() - 1);
   }

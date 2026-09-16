@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AuthGate } from "@/components/AuthGate";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
+import { PlansSkeleton } from "@/components/skeletons";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlans, useExercises, useSetActivePlan, useArchivePlan, useDeletePlan } from "@/hooks/queries";
 import { savePlan } from "@/lib/db/plans";
@@ -17,7 +18,6 @@ import { qk } from "@/hooks/queries";
 import { Button } from "@dailylift/ui/components/button";
 import { Card, CardContent } from "@dailylift/ui/components/card";
 import { Badge } from "@dailylift/ui/components/badge";
-import { Skeleton } from "@dailylift/ui/components/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -46,138 +46,229 @@ import {
 } from "lucide-react";
 
 export default function PlansPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthGate requireOnboarding fallback={<PlansSkeleton />}>
+          <PlansSkeleton />
+        </AuthGate>
+      }
+    >
+      <Plans />
+    </Suspense>
+  );
+}
+
+function Plans() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const urlTab = searchParams.get("tab") ?? "active";
+  const urlAction = searchParams.get("action");
+
   const { data: plans, isLoading } = usePlans();
-  const [buildOpen, setBuildOpen] = useState(false);
+  const [tab, setTab] = useState<"active" | "archived" | "all">(urlTab === "archived" ? "archived" : "active");
+  const [buildOpen, setBuildOpen] = useState(urlAction === "build" || urlAction === "create");
   const setActive = useSetActivePlan();
   const archive = useArchivePlan();
   const del = useDeletePlan();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (urlTab === "archived" || urlTab === "active" || urlTab === "all") {
+      setTab(urlTab);
+    }
+  }, [urlTab]);
+
+  useEffect(() => {
+    setBuildOpen(urlAction === "build" || urlAction === "create");
+  }, [urlAction]);
+
+  const updateQuery = (updates: { tab?: string; action?: string | null }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (updates.tab !== undefined) {
+      if (updates.tab === "active" || !updates.tab) params.delete("tab");
+      else params.set("tab", updates.tab);
+    }
+    if (updates.action !== undefined) {
+      if (!updates.action) params.delete("action");
+      else params.set("action", updates.action);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const handleBuildOpenChange = (open: boolean) => {
+    setBuildOpen(open);
+    updateQuery({ action: open ? "build" : null });
+  };
+
+  const handleTabChange = (nextTab: "active" | "archived" | "all") => {
+    setTab(nextTab);
+    updateQuery({ tab: nextTab });
+  };
+
   const active = plans?.filter((p) => !p.is_archived) ?? [];
   const archived = plans?.filter((p) => p.is_archived) ?? [];
 
   return (
-    <AuthGate requireOnboarding>
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <PageHeader
-          title="Workout plans"
-          subtitle="Your training splits and weekly schedules."
-          actions={
-            <Button onClick={() => setBuildOpen(true)}>
-              <Plus className="size-4" /> Build a plan
-            </Button>
-          }
-        />
-
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
-            ))}
-          </div>
-        ) : active.length === 0 ? (
-          <EmptyState
-            icon={ClipboardList}
-            title="No plans yet"
-            description="Build a personalized training split in seconds — pick a split or let us suggest one from your profile."
-            action={
-              <Button onClick={() => setBuildOpen(true)}>
-                <Sparkles className="size-4" /> Build my first plan
+    <AuthGate requireOnboarding fallback={<PlansSkeleton />}>
+      {isLoading ? (
+        <PlansSkeleton />
+      ) : (
+        <div className="container mx-auto max-w-4xl px-4 py-8">
+          <PageHeader
+            title="Workout plans"
+            subtitle="Your training splits and weekly schedules."
+            actions={
+              <Button onClick={() => handleBuildOpenChange(true)}>
+                <Plus className="size-4" /> Build a plan
               </Button>
             }
           />
-        ) : (
-          <div className="space-y-3">
-            {active.map((plan) => (
-              <Card key={plan.id} className="hover-lift transition-colors hover:border-primary/40">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <Link href={`/plans/${plan.id}`} className="truncate font-display font-semibold hover:underline">
-                        {plan.name}
-                      </Link>
-                      {plan.is_active && (
-                        <Badge className="gap-1">
-                          <CheckCircle2 className="size-3" /> Active
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="capitalize">{plan.source}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {plan.days_per_week ?? "—"} days / week
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {!plan.is_active && (
-                      <Button size="sm" variant="outline" onClick={() => setActive.mutate(plan.id)}>
-                        Set active
-                      </Button>
-                    )}
-                    <Button size="icon" variant="ghost" title="Archive" onClick={() => archive.mutate(plan.id)}>
-                      <Archive className="size-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" title="Delete" onClick={() => setConfirmDelete(plan.id)}>
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                    <Link href={`/plans/${plan.id}`}>
-                      <Button size="icon" variant="ghost">
-                        <ChevronRight className="size-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
 
-            {archived.length > 0 && (
-              <>
-                <h2 className="pt-4 text-sm font-medium text-muted-foreground">Archived</h2>
-                {archived.map((plan) => (
-                  <Card key={plan.id} className="opacity-70">
-                    <CardContent className="flex items-center justify-between gap-4 p-4">
-                      <Link href={`/plans/${plan.id}`} className="truncate font-medium hover:underline">
-                        {plan.name}
-                      </Link>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="outline" onClick={() => setActive.mutate(plan.id)}>
-                          Restore
+          {/* Filter tabs if archived plans exist */}
+          {archived.length > 0 && (
+            <div className="mb-6 flex gap-2">
+              <button
+                onClick={() => handleTabChange("active")}
+                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                  tab === "active"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/40 text-muted-foreground"
+                }`}
+              >
+                Active ({active.length})
+              </button>
+              <button
+                onClick={() => handleTabChange("archived")}
+                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                  tab === "archived"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/40 text-muted-foreground"
+                }`}
+              >
+                Archived ({archived.length})
+              </button>
+              <button
+                onClick={() => handleTabChange("all")}
+                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                  tab === "all"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/40 text-muted-foreground"
+                }`}
+              >
+                All ({(plans ?? []).length})
+              </button>
+            </div>
+          )}
+
+          {active.length === 0 && (tab === "active" || archived.length === 0) ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="No plans yet"
+              description="Build a personalized training split in seconds — pick a split or let us suggest one from your profile."
+              action={
+                <Button onClick={() => handleBuildOpenChange(true)}>
+                  <Sparkles className="size-4" /> Build my first plan
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {(tab === "active" || tab === "all") &&
+                active.map((plan) => (
+                  <Card key={plan.id} className="hover-lift transition-colors hover:border-primary/40">
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex items-center gap-2">
+                          <Link href={`/plans/${plan.id}`} className="truncate font-display font-semibold hover:underline">
+                            {plan.name}
+                          </Link>
+                          {plan.is_active && (
+                            <Badge className="gap-1">
+                              <CheckCircle2 className="size-3" /> Active
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="capitalize">{plan.source}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {plan.days_per_week ?? "—"} days / week
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {!plan.is_active && (
+                          <Button size="sm" variant="outline" onClick={() => setActive.mutate(plan.id)}>
+                            Set active
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" title="Archive" onClick={() => archive.mutate(plan.id)}>
+                          <Archive className="size-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setConfirmDelete(plan.id)}>
+                        <Button size="icon" variant="ghost" title="Delete" onClick={() => setConfirmDelete(plan.id)}>
                           <Trash2 className="size-4 text-destructive" />
                         </Button>
+                        <Link href={`/plans/${plan.id}`}>
+                          <Button size="icon" variant="ghost">
+                            <ChevronRight className="size-4" />
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
-              </>
-            )}
-          </div>
-        )}
 
-        <BuildPlanDialog open={buildOpen} onOpenChange={setBuildOpen} />
+              {(tab === "archived" || (tab === "all" && archived.length > 0)) && (
+                <>
+                  {tab === "all" && <h2 className="pt-4 text-sm font-medium text-muted-foreground">Archived</h2>}
+                  {archived.map((plan) => (
+                    <Card key={plan.id} className="opacity-70">
+                      <CardContent className="flex items-center justify-between gap-4 p-4">
+                        <Link href={`/plans/${plan.id}`} className="truncate font-medium hover:underline">
+                          {plan.name}
+                        </Link>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" onClick={() => setActive.mutate(plan.id)}>
+                            Restore
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => setConfirmDelete(plan.id)}>
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
 
-        <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this plan?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This permanently removes the plan and its days. Logged workouts are kept.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (confirmDelete) del.mutate(confirmDelete);
-                  setConfirmDelete(null);
-                }}
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+          <BuildPlanDialog open={buildOpen} onOpenChange={handleBuildOpenChange} />
+
+          <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this plan?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently removes the plan and its days. Logged workouts are kept.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    if (confirmDelete) del.mutate(confirmDelete);
+                    setConfirmDelete(null);
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
     </AuthGate>
   );
 }

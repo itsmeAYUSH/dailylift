@@ -42,6 +42,32 @@ export function sessionVolume(sets: CompletedSet[]): number {
   );
 }
 
+/** Best estimated 1RM across a session's working sets (0 if none usable). */
+export function sessionBest1RM(sets: CompletedSet[]): number {
+  return sets
+    .filter((s) => (s.set_type ?? "working") === "working")
+    .reduce((m, s) => Math.max(m, estimateOneRepMax(s.weight_kg ?? 0, s.reps ?? 0)), 0);
+}
+
+export type ProgressDirection = "up" | "same" | "down" | "baseline";
+
+/**
+ * Deterministic progress direction between the current and previous session for
+ * one exercise, judged by best estimated 1RM. Returns "baseline" when there is
+ * no comparable prior data.
+ */
+export function compareProgress(
+  current: CompletedSet[],
+  previous: CompletedSet[],
+): ProgressDirection {
+  const c = sessionBest1RM(current);
+  const p = sessionBest1RM(previous);
+  if (c <= 0 || p <= 0) return "baseline";
+  if (c > p) return "up";
+  if (c < p) return "down";
+  return "same";
+}
+
 /**
  * Suggest the next session's load. Rules, most specific first:
  *  - No usable history → no suggestion.
