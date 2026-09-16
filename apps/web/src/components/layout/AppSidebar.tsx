@@ -41,7 +41,6 @@ import {
   CollapsibleTrigger,
 } from "@dailylift/ui/components/collapsible";
 import { Avatar, AvatarFallback } from "@dailylift/ui/components/avatar";
-import { SidebarToggle } from "./SidebarToggle";
 import { useAuthStore } from "@/stores/authStore";
 
 const navigation = [
@@ -85,27 +84,26 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="h-[4.5rem] justify-center p-3">
-        <div className="flex items-center justify-between gap-2">
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-1"
-            onClick={closeMobileDrawer}
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm gradient-primary">
-              <Dumbbell className="size-5" />
-            </span>
-            <span className="truncate font-display text-xl font-bold tracking-tight group-data-[collapsible=icon]:hidden">
-              DailyLift
-            </span>
-          </Link>
-          <SidebarToggle className="shrink-0 group-data-[collapsible=icon]:hidden" />
-        </div>
+      <SidebarHeader className="h-16 justify-center p-3 group-data-[collapsible=icon]:p-2">
+        <Link
+          href="/dashboard"
+          className="flex min-w-0 items-center gap-2.5 rounded-lg px-1 py-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          onClick={closeMobileDrawer}
+        >
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl text-primary-foreground shadow-sm gradient-primary">
+            <Dumbbell className="size-5" />
+          </span>
+          <span className="truncate font-display text-lg font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+            DailyLift
+          </span>
+        </Link>
       </SidebarHeader>
 
       <SidebarSeparator />
 
-      <SidebarContent className="px-1.5 py-2">
+      {/* data-lenis-prevent: let the wheel scroll the sidebar itself instead of
+          the page's smooth-scroll hijacking it. */}
+      <SidebarContent className="px-1.5 py-2" data-lenis-prevent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider">Menu</SidebarGroupLabel>
           <SidebarGroupContent>

@@ -151,7 +151,7 @@ export default function Dashboard() {
                   <Dumbbell className="size-7" />
                 </div>
                 <div>
-                  <p className="text-sm text-primary-foreground/80">Today's session</p>
+                  <p className="text-sm text-primary-foreground/80">Today&apos;s session</p>
                   <p className="font-display text-2xl font-bold">
                     {suggestedDay ? suggestedDay.name : activePlan ? "Rest day" : "No active plan"}
                   </p>
@@ -421,7 +421,7 @@ function buildInsight(d: { workoutsThisWeek: number; streak: number; weeklyVolum
   return { title: `${d.workoutsThisWeek} workout${d.workoutsThisWeek > 1 ? "s" : ""} this week`, body: `That's ${d.weeklyVolume.toLocaleString()} kg of total volume so far. Log another to build the week.` };
 }
 
-function StatCard({ icon: Icon, label, value, sub, change }: { icon: typeof Dumbbell; label: string; value: string; sub: string; change?: number | null }) {
+function StatCard({ icon: Icon, value, sub, change }: { icon: typeof Dumbbell; label: string; value: string; sub: string; change?: number | null }) {
   return (
     <Card className="hover-lift">
       <CardContent className="p-4">

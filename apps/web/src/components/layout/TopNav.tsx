@@ -38,7 +38,7 @@ export function TopNav() {
   const { user } = useAuthStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/70 px-3 backdrop-blur-xl sm:px-5 md:h-[4.5rem]">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/70 px-3 backdrop-blur-xl sm:px-5 md:h-16">
       {user ? (
         <>
           {/* On desktop the toggle lives in the sidebar header; this is the
@@ -51,10 +51,13 @@ export function TopNav() {
             </span>
             <span className="font-display text-lg font-bold tracking-tight">DailyLift</span>
           </Link>
-          {/* Desktop page title */}
-          <h2 className="hidden font-display text-xl font-semibold tracking-tight md:block">
-            {titleFor(pathname)}
-          </h2>
+          {/* Desktop: sidebar toggle sits right next to the page title */}
+          <div className="hidden items-center gap-2.5 md:flex">
+            <SidebarToggle />
+            <h2 className="font-display text-xl font-semibold tracking-tight">
+              {titleFor(pathname)}
+            </h2>
+          </div>
         </>
       ) : (
         <Link href="/" className="flex items-center gap-2.5">

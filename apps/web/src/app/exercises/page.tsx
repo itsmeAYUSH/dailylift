@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@dailylift/ui/components/dialog";
 import { Skeleton } from "@dailylift/ui/components/skeleton";
-import { LibraryBig, Search, Dumbbell, Info, AlertTriangle } from "lucide-react";
+import { Search, Dumbbell, Info, AlertTriangle } from "lucide-react";
 
 const ENVIRONMENTS = ["all", "gym", "home"] as const;
 
@@ -45,7 +45,7 @@ export default function ExercisesPage() {
 
   return (
     <AuthGate>
-      <div className="container mx-auto max-w-5xl px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <PageHeader
           title="Exercise library"
           subtitle="Browse movements, learn the form, and see what to train."

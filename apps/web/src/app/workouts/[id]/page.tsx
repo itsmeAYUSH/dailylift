@@ -302,7 +302,7 @@ export default function WorkoutLoggerPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Cancel this workout?</AlertDialogTitle>
               <AlertDialogDescription>
-                It will be discarded and won't appear in your history.
+                It will be discarded and won&apos;t appear in your history.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

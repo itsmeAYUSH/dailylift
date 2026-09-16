@@ -15,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@dailylift/ui/componen
 import { Badge } from "@dailylift/ui/components/badge";
 import { Skeleton } from "@dailylift/ui/components/skeleton";
 import {
-  Dumbbell,
   Play,
   ClipboardList,
   History,
@@ -71,7 +70,7 @@ export default function WorkoutsHub() {
 
   return (
     <AuthGate requireOnboarding>
-      <div className="container mx-auto max-w-3xl px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <PageHeader
           title="Train"
           subtitle="Start today's session and log every set."

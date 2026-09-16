@@ -34,7 +34,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@dailylift/ui/components/dialog";
-import { TrendingUp, Scale, Dumbbell, Trophy, Plus } from "lucide-react";
+import { Scale, Dumbbell, Trophy, Plus } from "lucide-react";
 
 const RANGES = [
   { label: "30D", days: 30 },
@@ -50,7 +50,12 @@ export default function ProgressPage() {
   const [range, setRange] = useState<(typeof RANGES)[number]>(RANGES[1]);
   const [weightOpen, setWeightOpen] = useState(false);
 
-  const cutoff = Date.now() - range.days * 24 * 3600 * 1000;
+  // Capture "now" once on mount so the cutoff stays stable across renders.
+  const [now] = useState(() => Date.now());
+  const cutoff = useMemo(
+    () => now - range.days * 24 * 3600 * 1000,
+    [now, range.days],
+  );
 
   const weightSeries = useMemo(() => {
     return (weights ?? [])

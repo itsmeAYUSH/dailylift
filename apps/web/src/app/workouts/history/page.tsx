@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@dailylift/ui/components/alert-dialog";
-import { History, ArrowLeft, Trash2, Dumbbell, Clock, Layers } from "lucide-react";
+import { ArrowLeft, Trash2, Dumbbell, Clock, Layers } from "lucide-react";
 
 export default function HistoryPage() {
   const { data: history, isLoading } = useWorkoutHistory();
@@ -56,7 +56,7 @@ export default function HistoryPage() {
 
   return (
     <AuthGate>
-      <div className="container mx-auto max-w-3xl px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <Link href="/workouts" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" /> Train
         </Link>

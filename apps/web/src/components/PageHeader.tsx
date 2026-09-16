@@ -16,7 +16,6 @@ export interface Crumb {
  * omitted it defaults to "Home › {title}".
  */
 export function PageHeader({
-  icon: Icon,
   title,
   subtitle,
   actions,

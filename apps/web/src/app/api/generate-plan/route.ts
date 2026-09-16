@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/supabase/server";
-import { geminiGenerate } from "@/lib/ai/gemini";
+import { geminiGenerate, GeminiError } from "@/lib/ai/gemini";
 import { checkRateLimit } from "@/lib/ai/rate-limit";
 import {
   workoutPlanSchema,
@@ -202,6 +202,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ plan: result.data });
   } catch (error) {
     console.error("Error in generate-plan route:", error);
+
+    // Upstream AI failure — surface a friendly, actionable message. Overload
+    // (503/429) is temporary; other statuses map to a generic failure.
+    if (error instanceof GeminiError) {
+      const overloaded = error.retryable;
+      return NextResponse.json(
+        {
+          error: overloaded
+            ? "The AI is busy right now (high demand). Please try again in a moment."
+            : "AI generation failed. Please try again.",
+        },
+        { status: overloaded ? 503 : 502 },
+      );
+    }
+
     const errorMessage =
       error instanceof Error ? error.message : "Failed to generate plan";
     return NextResponse.json({ error: errorMessage }, { status: 500 });

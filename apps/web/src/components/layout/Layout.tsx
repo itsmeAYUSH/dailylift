@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
       <AppSidebar />
       <SidebarInset className="bg-transparent">
         <TopNav />
-        <main className="relative min-h-[calc(100svh-4.5rem)] pb-20">
+        <main className="relative min-h-[calc(100svh-4rem)] pb-20">
           {/* Subtle depth: a soft brand glow at the top of the content area. */}
           <div
             aria-hidden

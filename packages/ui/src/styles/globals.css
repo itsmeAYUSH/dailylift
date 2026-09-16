@@ -242,6 +242,9 @@
 
   html {
     scroll-behavior: auto;
+    /* Slightly smaller base type scales the whole app down a touch. Every
+       rem-based size (text, spacing, control heights) follows from this. */
+    font-size: 93.75%; /* 15px */
   }
 
   html.lenis,

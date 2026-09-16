@@ -13,7 +13,7 @@ import { Button } from "@dailylift/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@dailylift/ui/components/card";
 import { Badge } from "@dailylift/ui/components/badge";
 import { Skeleton } from "@dailylift/ui/components/skeleton";
-import { ClipboardList, Play, CheckCircle2, ArrowLeft, Dumbbell } from "lucide-react";
+import { Play, CheckCircle2, ArrowLeft, Dumbbell } from "lucide-react";
 
 function titleCase(s: string | null) {
   return (s ?? "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

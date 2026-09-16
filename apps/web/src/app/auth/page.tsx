@@ -123,7 +123,7 @@ function AuthForm() {
         toast.success('Welcome back!');
         router.replace(destination);
       }
-    } catch (error) {
+    } catch {
       toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -142,7 +142,7 @@ function AuthForm() {
       if (error) {
         toast.error(error.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to sign in with Google');
     }
   };

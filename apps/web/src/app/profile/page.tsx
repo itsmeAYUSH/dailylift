@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@dailylift/ui/components/select";
-import { User } from "lucide-react";
 
 const GOALS = [
   ["weight_loss", "Lose fat"],
@@ -61,6 +60,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!profile) return;
+    // Prefill the form once the user's profile loads.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm({
       full_name: profile.full_name ?? "",
       age: profile.age?.toString() ?? "",
@@ -105,7 +106,7 @@ export default function ProfilePage() {
 
   return (
     <AuthGate>
-      <div className="container mx-auto max-w-2xl px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <PageHeader title="Profile" subtitle="Your details drive your plans and targets." />
 
         <Card>

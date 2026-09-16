@@ -9,14 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@dailylift/ui/componen
 import { Input } from '@dailylift/ui/components/input';
 import { Label } from '@dailylift/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@dailylift/ui/components/select';
-import { Progress } from '@dailylift/ui/components/progress';
 import { useAuthStore } from '@/stores/authStore';
-import { 
-  Calculator, 
-  Scale, 
-  Flame, 
-  Target,
-  Activity,
+import {
+  Scale,
+  Flame,
   Droplets,
   Heart,
   Zap
@@ -82,6 +78,8 @@ function Calculators() {
 
   useEffect(() => {
     if (typeParam && CALCULATORS.some((c) => c.id === typeParam)) {
+      // Sync the active calculator with the URL query param on navigation.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveCalc(typeParam);
     }
   }, [typeParam]);
@@ -99,6 +97,8 @@ function Calculators() {
 
   useEffect(() => {
     if (profile) {
+      // Prefill the calculator inputs once the user's profile loads.
+      /* eslint-disable react-hooks/set-state-in-effect */
       setBmiHeight(profile.height_cm?.toString() || '');
       setBmiWeight(profile.weight_kg?.toString() || '');
       setBmrAge(profile.age?.toString() || '');
@@ -109,6 +109,7 @@ function Calculators() {
       setBfGender(profile.gender || 'male');
       setWaterWeight(profile.weight_kg?.toString() || '');
       setCalGoal(profile.fitness_goal || 'general_fitness');
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [profile]);
 
@@ -621,7 +622,7 @@ function Calculators() {
                     </p>
                     <p className="text-lg text-muted-foreground mt-2">per day</p>
                     <p className="text-sm text-muted-foreground mt-4">
-                      That's about {Math.round(waterResult * 4)} glasses of water (250ml each)
+                      That&apos;s about {Math.round(waterResult * 4)} glasses of water (250ml each)
                     </p>
                   </div>
                 )}

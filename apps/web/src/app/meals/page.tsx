@@ -12,8 +12,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { dailyCalorieTargetFromProfile } from '@/lib/fitness/calculations';
 import { toast } from 'sonner';
 import {
-  UtensilsCrossed,
-  Clock, 
+  Clock,
   Flame, 
   Zap,
   RotateCcw,
@@ -90,9 +89,11 @@ export default function Meals() {
       setMealPlan(data.plan);
       setCompletedMeals(new Set());
       toast.success('Meal plan generated!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error generating meal plan:', error);
-      toast.error(error.message || 'Failed to generate meal plan');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to generate meal plan',
+      );
     } finally {
       setGenerating(false);
     }
@@ -152,9 +153,9 @@ export default function Meals() {
               <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center mx-auto mb-5">
                 <Apple className="w-7 h-7 text-primary" />
               </div>
-              <h2 className="font-display text-xl font-bold mb-2">Generate today's meals</h2>
+              <h2 className="font-display text-xl font-bold mb-2">Generate today&apos;s meals</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                We'll build a plan around your {profile?.fitness_goal?.replace('_', ' ')} goal,
+                We&apos;ll build a plan around your {profile?.fitness_goal?.replace('_', ' ')} goal,
                 {' '}{profile?.dietary_preference?.replace('_', ' ')} preference, and {calculateDailyCalories()} cal target.
               </p>
               <Button
@@ -170,7 +171,7 @@ export default function Meals() {
                 ) : (
                   <>
                     <Zap className="w-5 h-5 mr-2" />
-                    Generate today's meals
+                    Generate today&apos;s meals
                   </>
                 )}
               </Button>
